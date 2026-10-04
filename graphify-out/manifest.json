@@ -1,0 +1,86 @@
+{
+  ".backlog/id-counters.json": {
+    "mtime": 1791104881.0416143,
+    "seen": 1791106808.263744,
+    "ast_hash": "8b623fdc97d3920213cda95449aca3d5",
+    "semantic_hash": "8b623fdc97d3920213cda95449aca3d5"
+  },
+  ".backlog/sync-conflicts.json": {
+    "mtime": 1791104438.1979396,
+    "seen": 1791106808.2637472,
+    "ast_hash": "06adfc9fe667271bd10a41f2a4e00af7",
+    "semantic_hash": "06adfc9fe667271bd10a41f2a4e00af7"
+  },
+  ".backlog/agents.yaml": {
+    "mtime": 1791104438.1979396,
+    "seen": 1791106808.263749,
+    "ast_hash": "0be2760208daa818d9227b5ee86a3b32",
+    "semantic_hash": "0be2760208daa818d9227b5ee86a3b32"
+  },
+  ".backlog/sources.yaml": {
+    "mtime": 1791104438.1979396,
+    "seen": 1791106808.2637496,
+    "ast_hash": "de007b3b679e3190681e1bcae974c272",
+    "semantic_hash": "de007b3b679e3190681e1bcae974c272"
+  },
+  ".backlog/subtasks.yaml": {
+    "mtime": 1791104438.196483,
+    "seen": 1791106808.26375,
+    "ast_hash": "4f1b85dec0ee0088b331d7e54b0d2e66",
+    "semantic_hash": "4f1b85dec0ee0088b331d7e54b0d2e66"
+  },
+  ".backlog/tasks.yaml": {
+    "mtime": 1791104911.5155396,
+    "seen": 1791106808.263751,
+    "ast_hash": "ca0d8b81946c22e76ac3dae2eeb2e152",
+    "semantic_hash": "ca0d8b81946c22e76ac3dae2eeb2e152"
+  },
+  ".backlog/users.yaml": {
+    "mtime": 1791104438.1979396,
+    "seen": 1791106808.2637517,
+    "ast_hash": "066b09bfcbd3d435d3b023e4d98e9ab4",
+    "semantic_hash": "066b09bfcbd3d435d3b023e4d98e9ab4"
+  },
+  "README.md": {
+    "mtime": 1791104948.2004342,
+    "seen": 1791106808.2637522,
+    "ast_hash": "cae7b301aa6c1041f42aca167392ee69",
+    "semantic_hash": "cae7b301aa6c1041f42aca167392ee69"
+  },
+  "backend/README.md": {
+    "mtime": 1791104924.4045608,
+    "seen": 1791106808.2637527,
+    "ast_hash": "fb61f0e59463fd05bef47505db73d4e2",
+    "semantic_hash": "fb61f0e59463fd05bef47505db73d4e2"
+  },
+  "docker-compose.yml": {
+    "mtime": 1791104924.472998,
+    "seen": 1791106808.2637532,
+    "ast_hash": "be8601eaba084268d2ddf7c6cb5a9504",
+    "semantic_hash": "be8601eaba084268d2ddf7c6cb5a9504"
+  },
+  "docs/BACKLOG.md": {
+    "mtime": 1791104948.312546,
+    "seen": 1791106808.2637537,
+    "ast_hash": "c1b71e7fb5726fa0bdf3f19a9355906c",
+    "semantic_hash": "c1b71e7fb5726fa0bdf3f19a9355906c"
+  },
+  "docs/diagrams/README.md": {
+    "mtime": 1791104924.4060655,
+    "seen": 1791106808.2637546,
+    "ast_hash": "dea1f7aa5158ced707eb4646b3d8853f",
+    "semantic_hash": "dea1f7aa5158ced707eb4646b3d8853f"
+  },
+  "mobile/README.md": {
+    "mtime": 1791104924.4055605,
+    "seen": 1791106808.263755,
+    "ast_hash": "5d4ebe34386ef613c0c6e8ee1298c755",
+    "semantic_hash": "5d4ebe34386ef613c0c6e8ee1298c755"
+  },
+  "requirements.md": {
+    "mtime": 1791104676.566438,
+    "seen": 1791106808.2637556,
+    "ast_hash": "c9270ec186058006bf1d8f17db138eab",
+    "semantic_hash": "c9270ec186058006bf1d8f17db138eab"
+  }
+}
