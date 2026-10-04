@@ -1,0 +1,6 @@
+@Kantor.Api_HostAddress = http://localhost:5171
+
+GET {{Kantor.Api_HostAddress}}/health
+Accept: application/json
+
+###
