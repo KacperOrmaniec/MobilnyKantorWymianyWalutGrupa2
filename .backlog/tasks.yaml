@@ -1,0 +1,1256 @@
+version: 1
+tasks:
+  - id: task_001
+    title: "Decyzja: polityka kursów NBP przy kupnie/sprzedaży"
+    description: "Ustalić jednoznacznie, jak używamy kursów NBP: propozycja — tabela
+      C (bid/ask), PLN jako waluta rozliczeniowa; użytkownik kupuje walutę po
+      kursie sprzedaży (ask), sprzedaje po kursie kupna (bid). Określić świeżość
+      kursu (cache, co gdy NBP niedostępne / weekend). Wymagane przez sekcję 4
+      requirements.md."
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - docs
+      - etap-1
+      - decyzja
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Decyzja opisana w docs/ i w raporcie etapu 1
+      - Określone źródło tabeli (A lub C) i kierunek bid/ask
+      - Określone zachowanie przy braku kursu z dnia
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:06:11.236Z
+    updated_at: 2026-10-04T09:08:09.568Z
+  - id: task_002
+    title: Wymagania funkcjonalne i niefunkcjonalne
+    description: Spisać wymagania funkcjonalne (na podstawie sekcji 2
+      requirements.md) i niefunkcjonalne (bezpieczeństwo, spójność danych,
+      wydajność, dostępność).
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - docs
+      - etap-1
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Lista FR z identyfikatorami
+      - Lista NFR
+      - Zatwierdzone przez cały zespół
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:40.594Z
+    updated_at: 2026-10-04T09:08:10.211Z
+  - id: task_003
+    title: Diagram przypadków użycia UML
+    description: "Aktorzy: użytkownik, system NBP. Przypadki: rejestracja,
+      logowanie, zasilenie konta, kursy aktualne/archiwalne, kupno/sprzedaż,
+      portfel, historia."
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - docs
+      - etap-1
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Diagram + plik źródłowy w docs/diagrams/
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:41.168Z
+    updated_at: 2026-10-04T09:08:10.795Z
+  - id: task_004
+    title: Diagram klas
+    description: Diagram klas dla backendu (encje domenowe, serwisy, kontrolery)
+      spójny z modelem bazy.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - docs
+      - etap-1
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Diagram + plik źródłowy w docs/diagrams/
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:41.729Z
+    updated_at: 2026-10-04T09:08:11.403Z
+  - id: task_005
+    title: Model bazy danych i diagram ERD
+    description: "Tabele min.: users, wallets/balances (per waluta), transactions
+      (typ, waluta źródłowa/docelowa, kwota, kurs, data i czas). Typy numeryczne
+      decimal, nie float."
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - docs
+      - db
+      - etap-1
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - ERD + plik źródłowy w docs/diagrams/
+      - Kurs transakcji zapisany w transactions
+      - Hasło tylko jako hash
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:42.297Z
+    updated_at: 2026-10-04T09:08:12.005Z
+  - id: task_006
+    title: Opis architektury i komunikacji między komponentami
+    description: Mobile (React Native/Expo) -> REST/HTTPS -> .NET Web API ->
+      PostgreSQL; API -> NBP. Uwierzytelnianie JWT. Diagram
+      komponentów/wdrożenia.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - docs
+      - etap-1
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Diagram architektury
+      - Opis kontraktu API (lista endpointów)
+      - Opis auth
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:42.861Z
+    updated_at: 2026-10-04T09:08:12.607Z
+  - id: task_007
+    title: Raport PDF z etapu 1
+    description: Złożyć wymagania, diagramy, model bazy, architekturę i decyzję o
+      kursach w raport PDF. Dołączyć pliki źródłowe diagramów.
+    source_links: []
+    status: backlog
+    priority: P1
+    labels:
+      - docs
+      - etap-1
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - PDF oddany
+      - Pliki źródłowe diagramów w repo
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:43.438Z
+    updated_at: 2026-10-04T09:08:13.207Z
+  - id: task_008
+    title: Szkielet backendu .NET Web API
+    description: Projekt w backend/, podział na warstwy (API / Application / Domain
+      / Infrastructure lub prostszy), Swagger, endpoint /health, konfiguracja
+      CORS.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - backend
+      - setup
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - dotnet run startuje API
+      - Swagger dostępny lokalnie
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:44.006Z
+    updated_at: 2026-10-04T09:08:13.811Z
+  - id: task_009
+    title: EF Core + PostgreSQL + migracje
+    description: Podłączenie do Postgresa z docker-compose, DbContext, pierwsza
+      migracja zgodna z ERD. Connection string z konfiguracji/zmiennych
+      środowiskowych.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - backend
+      - db
+      - setup
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - dotnet ef database update tworzy schemat
+      - Brak sekretów w kodzie
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:44.576Z
+    updated_at: 2026-10-04T09:08:14.407Z
+  - id: task_010
+    title: Szkielet aplikacji mobilnej (Expo)
+    description: Projekt Expo (TypeScript) w mobile/, nawigacja (expo-router lub
+      React Navigation), klient HTTP z konfigurowalnym adresem API.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - mobile
+      - setup
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Aplikacja uruchamia się na Androidzie (Expo Go/emulator)
+      - Adres API z konfiguracji
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:45.159Z
+    updated_at: 2026-10-04T09:08:15.015Z
+  - id: task_011
+    title: Zarządzanie sekretami i konfiguracją
+    description: "JWT key, hasło do bazy itp. poza repo: .env (gitignore) +
+      .env.example, dotnet user-secrets. Wymóg z sekcji 7."
+    source_links: []
+    status: backlog
+    priority: P1
+    labels:
+      - backend
+      - devops
+      - setup
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Żaden sekret nie jest w repo
+      - .env.example opisuje wszystkie zmienne
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:45.743Z
+    updated_at: 2026-10-04T09:08:15.644Z
+  - id: task_012
+    title: Rejestracja i logowanie (hash hasła, JWT)
+    description: POST /auth/register, POST /auth/login. Hasło hashowane (np. ASP.NET
+      Identity PasswordHasher / BCrypt). Login zwraca JWT.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - backend
+      - auth
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Hasło nigdy nie jest zapisane jawnie
+      - Duplikat e-maila zwraca błąd
+      - Login zwraca token
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:46.325Z
+    updated_at: 2026-10-04T09:08:16.245Z
+  - id: task_013
+    title: Autoryzacja endpointów, walidacja i obsługa błędów
+    description: "[Authorize] na endpointach użytkownika, użytkownik widzi tylko
+      swoje dane. Walidacja wejścia, spójne błędy (ProblemDetails)."
+    source_links: []
+    status: backlog
+    priority: P1
+    labels:
+      - backend
+      - auth
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Bez tokena 401
+      - Niepoprawne dane 400 z opisem
+      - Brak dostępu do cudzych danych
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:46.898Z
+    updated_at: 2026-10-04T09:08:16.840Z
+  - id: task_014
+    title: Integracja z API NBP — kursy aktualne
+    description: Klient HTTP do api.nbp.pl (zgodnie z decyzją o tabeli A/C), cache
+      kursów, obsługa niedostępności NBP. GET /rates.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - backend
+      - nbp
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - GET /rates zwraca aktualne kursy
+      - Błąd NBP nie wywraca API
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:47.466Z
+    updated_at: 2026-10-04T09:08:17.431Z
+  - id: task_015
+    title: Kursy archiwalne
+    description: GET /rates/{code}/history?from&to — kursy z zakresu dat z NBP
+      (limit 93 dni na zapytanie NBP).
+    source_links: []
+    status: backlog
+    priority: P1
+    labels:
+      - backend
+      - nbp
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Zwraca serię kursów dla zakresu
+      - Walidacja zakresu dat
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:48.047Z
+    updated_at: 2026-10-04T09:08:18.018Z
+  - id: task_016
+    title: Zasilenie konta symulowanym przelewem
+    description: POST /wallet/deposit — dodaje PLN do salda użytkownika i zapisuje
+      operację w historii. Saldo zmienia wyłącznie serwer.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - backend
+      - wallet
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Kwota > 0 walidowana
+      - Operacja widoczna w historii
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:48.625Z
+    updated_at: 2026-10-04T09:08:18.608Z
+  - id: task_017
+    title: Portfel — stan sald
+    description: GET /wallet — salda użytkownika we wszystkich walutach (opcjonalnie
+      wartość w PLN).
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - backend
+      - wallet
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Zwraca salda zalogowanego użytkownika
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:49.201Z
+    updated_at: 2026-10-04T09:08:19.198Z
+  - id: task_018
+    title: Transakcja kupna/sprzedaży waluty (atomowo)
+    description: POST /transactions/exchange. Kurs pobierany po stronie serwera, nie
+      od klienta. Zmiana obu sald + zapis transakcji w jednej transakcji DB,
+      ochrona przed współbieżnością (row lock / concurrency token). Zapis
+      zastosowanego kursu i znacznika czasu.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - backend
+      - wallet
+      - transakcje
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Niewystarczające środki -> błąd, brak zmian
+      - Oba salda i wpis transakcji zmieniają się razem albo wcale
+      - Kurs zapisany w transakcji
+      - Test współbieżności nie daje ujemnego salda
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:49.776Z
+    updated_at: 2026-10-04T09:08:19.806Z
+  - id: task_019
+    title: Historia transakcji
+    description: GET /transactions — historia z paginacją i filtrem po
+      typie/walucie. Dane historyczne niezależne od bieżących kursów.
+    source_links: []
+    status: backlog
+    priority: P1
+    labels:
+      - backend
+      - transakcje
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Zwraca rodzaj, waluty, kwotę, kurs, datę
+      - Paginacja
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:50.368Z
+    updated_at: 2026-10-04T09:08:20.481Z
+  - id: task_020
+    title: Testy backendu
+    description: Testy jednostkowe logiki wymiany i sald, testy integracyjne
+      endpointów (np. WebApplicationFactory + Testcontainers/Postgres).
+    source_links: []
+    status: backlog
+    priority: P1
+    labels:
+      - backend
+      - testy
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Testy przechodzą lokalnie
+      - "Pokryte: rejestracja, deposit, exchange, brak środków"
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:50.950Z
+    updated_at: 2026-10-04T09:08:21.119Z
+  - id: task_021
+    title: Dockerfile dla API + API w docker-compose
+    description: "Opcjonalnie: obraz backendu i serwis api w docker-compose, żeby
+      całość startowała jedną komendą."
+    source_links: []
+    status: backlog
+    priority: P2
+    labels:
+      - backend
+      - devops
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - docker compose up stawia API + bazę
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:51.523Z
+    updated_at: 2026-10-04T09:08:21.774Z
+  - id: task_022
+    title: Ekrany rejestracji i logowania
+    description: Formularze z walidacją, przechowywanie tokena w expo-secure-store,
+      wylogowanie, przekierowanie przy 401.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - mobile
+      - auth
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Rejestracja i logowanie działają z API
+      - Token w SecureStore, nie AsyncStorage
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:52.112Z
+    updated_at: 2026-10-04T09:08:22.401Z
+  - id: task_023
+    title: Ekran aktualnych kursów
+    description: Lista walut z kursami kupna/sprzedaży, odświeżanie
+      (pull-to-refresh), data tabeli.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - mobile
+      - nbp
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Dane z GET /rates
+      - Widoczna data kursu
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:52.700Z
+    updated_at: 2026-10-04T09:08:23.035Z
+  - id: task_024
+    title: Ekran kursów archiwalnych
+    description: Wybór waluty i zakresu dat, lista kursów historycznych.
+    source_links: []
+    status: backlog
+    priority: P1
+    labels:
+      - mobile
+      - nbp
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Dane z endpointu historii
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:53.295Z
+    updated_at: 2026-10-04T09:08:23.661Z
+  - id: task_025
+    title: Ekran zasilenia konta
+    description: Formularz kwoty symulowanego przelewu, potwierdzenie, odświeżenie salda.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - mobile
+      - wallet
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Po zasileniu saldo aktualizuje się z serwera
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:53.902Z
+    updated_at: 2026-10-04T09:08:24.255Z
+  - id: task_026
+    title: Ekran kupna/sprzedaży waluty
+    description: Wybór waluty, kierunku i kwoty, podgląd kursu i wyniku,
+      potwierdzenie. Klient nie liczy salda — wynik z serwera.
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - mobile
+      - transakcje
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Transakcja wykonana przez API
+      - Czytelny komunikat przy braku środków
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:54.488Z
+    updated_at: 2026-10-04T09:08:24.858Z
+  - id: task_027
+    title: Ekran portfela
+    description: Salda we wszystkich walutach, szybkie akcje (zasil, wymień).
+    source_links: []
+    status: backlog
+    priority: P0
+    labels:
+      - mobile
+      - wallet
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Dane z GET /wallet
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:55.091Z
+    updated_at: 2026-10-04T09:08:25.499Z
+  - id: task_028
+    title: Ekran historii transakcji
+    description: Lista transakcji z kursem i datą, przewijanie/paginacja.
+    source_links: []
+    status: backlog
+    priority: P1
+    labels:
+      - mobile
+      - transakcje
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Dane z GET /transactions
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:55.681Z
+    updated_at: 2026-10-04T09:08:26.109Z
+  - id: task_029
+    title: "UX: stany ładowania, błędy, puste stany"
+    description: Spójne loadery, komunikaty błędów sieci, puste stany. Ergonomia =
+      10% oceny.
+    source_links: []
+    status: backlog
+    priority: P2
+    labels:
+      - mobile
+      - ux
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Każdy ekran ma stan loading/error/empty
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:56.268Z
+    updated_at: 2026-10-04T09:08:26.706Z
+  - id: task_030
+    title: Testy scenariuszy end-to-end
+    description: "Checklista scenariuszy: rejestracja -> logowanie -> zasilenie ->
+      kupno -> sprzedaż -> portfel -> historia; przypadki błędne."
+    source_links: []
+    status: backlog
+    priority: P1
+    labels:
+      - testy
+      - etap-2
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Checklista w docs/ przetestowana na Androidzie
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:56.864Z
+    updated_at: 2026-10-04T09:08:27.302Z
+  - id: task_031
+    title: Instrukcja uruchomienia systemu
+    description: "README: wymagania, docker compose, migracje, uruchomienie API i
+      aplikacji Expo, zmienne środowiskowe."
+    source_links: []
+    status: backlog
+    priority: P1
+    labels:
+      - docs
+      - etap-2
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Osoba spoza zespołu uruchamia system wg instrukcji
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:57.458Z
+    updated_at: 2026-10-04T09:08:27.899Z
+  - id: task_032
+    title: Dokumentacja użytkownika
+    description: Krótki opis korzystania z aplikacji ze zrzutami ekranu.
+    source_links: []
+    status: backlog
+    priority: P2
+    labels:
+      - docs
+      - etap-2
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Dokument w docs/
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:58.052Z
+    updated_at: 2026-10-04T09:08:28.498Z
+  - id: task_033
+    title: Prezentacja i scenariusz demo
+    description: Slajdy (architektura, decyzje, demo) + przećwiczony scenariusz
+      demonstracji.
+    source_links: []
+    status: backlog
+    priority: P1
+    labels:
+      - docs
+      - etap-2
+    repo_targets:
+      - kantor
+    acceptance_criteria:
+      - Prezentacja gotowa
+      - Demo przećwiczone
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:58.655Z
+    updated_at: 2026-10-04T09:08:29.107Z
+  - id: task_034
+    title: "Extra: wykres kursu archiwalnego"
+    description: Wykres liniowy kursu dla wybranego zakresu na ekranie archiwalnym.
+    source_links: []
+    status: backlog
+    priority: P3
+    labels:
+      - mobile
+      - extra
+    repo_targets:
+      - kantor
+    acceptance_criteria: []
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:59.255Z
+    updated_at: 2026-10-04T09:08:29.697Z
+  - id: task_035
+    title: "Extra: alerty kursowe"
+    description: Użytkownik ustawia próg kursu, dostaje powiadomienie po przekroczeniu.
+    source_links: []
+    status: backlog
+    priority: P3
+    labels:
+      - backend
+      - mobile
+      - extra
+    repo_targets:
+      - kantor
+    acceptance_criteria: []
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:07:59.849Z
+    updated_at: 2026-10-04T09:08:30.294Z
+  - id: task_036
+    title: "Extra: obsługa wielu języków (PL/EN)"
+    description: i18n w aplikacji mobilnej.
+    source_links: []
+    status: backlog
+    priority: P3
+    labels:
+      - mobile
+      - extra
+    repo_targets:
+      - kantor
+    acceptance_criteria: []
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:08:00.450Z
+    updated_at: 2026-10-04T09:08:30.902Z
+  - id: task_037
+    title: "Extra: tryb offline dla kursów"
+    description: Cache ostatnio pobranych kursów i portfela, czytelny stan offline.
+    source_links: []
+    status: backlog
+    priority: P3
+    labels:
+      - mobile
+      - extra
+    repo_targets:
+      - kantor
+    acceptance_criteria: []
+    dependencies: []
+    planning:
+      split_status: pending
+      risk: medium
+    execution_defaults:
+      manual_approval_required: false
+      auto_commit: true
+      push_when_done: true
+      create_pr: false
+      merge_pr: false
+      worktree_mode: direct
+      preferred_agents: []
+      max_subagents: 5
+    sync:
+      source_of_truth: backlog
+      push_status: false
+      push_comments: false
+    created_at: 2026-10-04T09:08:01.039Z
+    updated_at: 2026-10-04T09:08:31.502Z

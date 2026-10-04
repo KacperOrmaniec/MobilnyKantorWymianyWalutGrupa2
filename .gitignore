@@ -1,0 +1,36 @@
+# --- Secrets / env ---
+.env
+.env.*
+!.env.example
+*.pfx
+secrets.json
+
+# --- .NET ---
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
+
+# --- Node / Expo ---
+node_modules/
+.expo/
+dist/
+web-build/
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+expo-env.d.ts
+npm-debug.*
+yarn-error.*
+
+# --- IDE / OS ---
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
