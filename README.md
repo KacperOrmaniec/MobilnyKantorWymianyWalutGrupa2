@@ -1,0 +1,1 @@
+# MobilnyKantorWymianyWalutGrupa2
