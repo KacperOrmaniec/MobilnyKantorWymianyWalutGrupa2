@@ -8,7 +8,7 @@ tasks:
       kursu (cache, co gdy NBP niedostępne / weekend). Wymagane przez sekcję 4
       requirements.md."
     source_links: []
-    status: backlog
+    status: ready
     priority: P0
     labels:
       - docs
@@ -38,7 +38,7 @@ tasks:
       push_status: false
       push_comments: false
     created_at: 2026-10-04T09:06:11.236Z
-    updated_at: 2026-10-04T09:08:09.568Z
+    updated_at: 2026-10-04T10:03:33.550Z
   - id: task_002
     title: Wymagania funkcjonalne i niefunkcjonalne
     description: Spisać wymagania funkcjonalne (na podstawie sekcji 2
