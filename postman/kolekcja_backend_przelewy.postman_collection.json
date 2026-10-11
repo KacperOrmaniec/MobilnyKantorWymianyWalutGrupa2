@@ -1,0 +1,38 @@
+{
+  "info": {
+    "_postman_id": "5fe5047c-8b28-442d-a881-2e13882dc888",
+    "name": "backend /przelewy",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "33730469"
+  },
+  "item": [
+    {
+      "name": "wykonanie przelewu",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"idNadawcy\": 1,\r\n  \"idOdbiorcy\": 2,\r\n  \"kwota\": 1,\r\n  \"waluta\": \"EUR\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5171/przelewy",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5171",
+          "path": [
+            "przelewy"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

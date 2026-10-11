@@ -1,0 +1,160 @@
+{
+  "info": {
+    "_postman_id": "aac3e4f2-910d-4d91-9344-46692db27fa3",
+    "name": "backend /konta",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "33730469"
+  },
+  "item": [
+    {
+      "name": "test połączenia z bazą danych",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5171/db-check",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5171",
+          "path": ["db-check"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Dodawanie użytkownika",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"login\": \"andrzej\",\r\n  \"haslo\": \"test123\",\r\n  \"imie\": \"Andrzej\",\r\n  \"nazwisko\": \"Nowak\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5171/konta",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5171",
+          "path": ["konta"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Sprawdzanie salda użytkownika",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5171/konta/1/saldo",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5171",
+          "path": ["konta", "1", "saldo"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "doładowanie salda PLN",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"kwota\": 1000.00\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5171/konta/1/doladowanie",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5171",
+          "path": ["konta", "1", "doladowanie"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Przewalutowanie",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"waluta\": \"EUR\",\r\n  \"kwota\": 10,\r\n  \"typTransakcji\": \"ZAKUP\" //ZAKUP lub SPRZEDAZ\r\n  //jeżeli będzie wybrane EURO 10 i ZAKUP oznacza że uzytkownik chce kupic 10 EURO\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5171/konta/2/przewalutowanie",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5171",
+          "path": ["konta", "2", "przewalutowanie"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Historia przewalutowania",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5171/konta/1/historia-przewalutowania",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5171",
+          "path": ["konta", "1", "historia-przewalutowania"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "historia przelewow użytkownika",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5171/konta/1/historia-przelewow",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5171",
+          "path": ["konta", "1", "historia-przelewow"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

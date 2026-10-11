@@ -109,6 +109,8 @@ istniejących tabel.
 
 ## Requesty API
 
+W folderze [postman/](postman/) znajdują się kolekcje requestów backendu i API NBP, które można zaimportować do Postmana.
+
 Adres bazowy: `http://localhost:5171`. Body dla POST wysyłaj jako JSON; `{id}` to ID użytkownika.
 
 UWAGA!!! Aktualnie JWT logowanie nie zostało zaimplementowane!!!

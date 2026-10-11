@@ -1,0 +1,62 @@
+{
+  "info": {
+    "_postman_id": "5512acf6-e4ae-4407-a521-b20a3c4b8626",
+    "name": "NBP API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "33730469"
+  },
+  "item": [
+    {
+      "name": "NBP - historyczne notowania",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.nbp.pl/api/exchangerates/rates/A/EUR/2026-10-01/2026-10-11/",
+          "protocol": "https",
+          "host": [
+            "api",
+            "nbp",
+            "pl"
+          ],
+          "path": [
+            "api",
+            "exchangerates",
+            "rates",
+            "A",
+            "EUR",
+            "2026-10-01",
+            "2026-10-11",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "NBP - request USD średni kurs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.nbp.pl/api/exchangerates/rates/C/USD/",
+          "protocol": "https",
+          "host": [
+            "api",
+            "nbp",
+            "pl"
+          ],
+          "path": [
+            "api",
+            "exchangerates",
+            "rates",
+            "C",
+            "USD",
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

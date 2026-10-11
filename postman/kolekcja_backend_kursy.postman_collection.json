@@ -1,0 +1,55 @@
+{
+  "info": {
+    "_postman_id": "f1188ecd-ff99-421a-9581-337b474aed60",
+    "name": "backend /kursy",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "33730469"
+  },
+  "item": [
+    {
+      "name": "pobieranie aktualnych kursów walut z bazy danych",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5171/kursy",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5171",
+          "path": [
+            "kursy"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "historyczne kursy z ostatnich 7 dni",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5171/kursy/historyczne",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5171",
+          "path": [
+            "kursy",
+            "historyczne"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
