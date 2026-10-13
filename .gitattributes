@@ -1,0 +1,2 @@
+backend/database/*.sh text eol=lf
+backend/database/*.sql text eol=lf
