@@ -107,6 +107,14 @@ procedury przez `CREATE OR REPLACE PROCEDURE`, również w istniejącej bazie.
 Istniejące tabele i dane pozostają bez zmian. Skrypt nie dodaje kolumn do
 istniejących tabel.
 
+**Zmiana struktury tabel** (np. przejście sald na tabelę `salda`) wymaga jednorazowego
+wyczyszczenia bazy: `docker compose down -v`, potem `docker compose up -d`.
+
+### Dodanie nowej waluty
+
+Dopisz wiersz do `INSERT INTO public.waluty` w `schema.sql` i zrestartuj kontener `db`.
+Kod musi być w tabeli C NBP (np. JPY, CZK, NOK, SEK). Zmiany w kodzie nie są potrzebne.
+
 ## Requesty API
 
 W folderze [postman/](postman/) znajdują się kolekcje requestów backendu i API NBP, które można zaimportować do Postmana.
@@ -119,17 +127,17 @@ UWAGA!!! Aktualnie JWT logowanie nie zostało zaimplementowane!!!
 | ------ | -------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------- |
 | GET    | `/test`                                | Sprawdza działanie API.                        | —                                                                      |
 | GET    | `/testdb`                              | Sprawdza połączenie z bazą.                    | —                                                                      |
-| GET    | `/konta/{id}/saldo`                    | Pobiera salda PLN/EUR/USD.                     | —                                                                      |
+| GET    | `/konta/{id}/saldo`                    | Pobiera salda we wszystkich walutach.          | —                                                                      |
 | POST   | `/konta`                               | Dodaje użytkownika.                            | `{"login":"jan","haslo":"test123","imie":"Jan","nazwisko":"Kowalski"}` |
 | POST   | `/konta/{id}/doladowanie`              | Doładowuje saldo PLN.                          | `{"kwota":100}`                                                        |
 | GET    | `/konta/{id}/historia-przelewow`       | Pobiera przelewy z nazwami nadawcy i odbiorcy. | —                                                                      |
 | GET    | `/konta/{id}/historia-przewalutowania` | Pobiera historię wymiany walut.                | —                                                                      |
-| GET    | `/kursy`                               | Odświeża EUR/USD z NBP i zwraca kursy z bazy.  | —                                                                      |
+| GET    | `/kursy`                               | Odświeża kursy walut z NBP i zwraca je z bazy. | —                                                                      |
 | GET    | `/kursy/historyczne`                   | Uzupełnia ostatnie 7 dni NBP i zwraca historię z bazy. | —                                                               |
 | POST   | `/przelewy`                            | Wykonuje przelew.                              | `{"idNadawcy":1,"idOdbiorcy":2,"kwota":50,"waluta":"PLN"}`             |
-| POST   | `/konta/{id}/przewalutowanie`          | Wymienia PLN na EUR/USD lub odwrotnie.         | `{"waluta":"EUR","kwota":10,"typTransakcji":"ZAKUP"}`                  |
+| POST   | `/konta/{id}/przewalutowanie`          | Wymienia PLN na walutę obcą lub odwrotnie.     | `{"waluta":"EUR","kwota":10,"typTransakcji":"ZAKUP"}`                  |
 
-Przelew obsługuje PLN/EUR/USD. Przy przewalutowaniu `kwota` oznacza ilość EUR/USD: `ZAKUP` kupuje walutę za PLN, a `SPRZEDAZ` sprzedaje ją za PLN. Kwoty muszą być dodatnie i mieć najwyżej 2 miejsca po przecinku.
+Obsługiwane waluty są w tabeli `waluty` (PLN, EUR, USD, CHF, GBP). Przelew obsługuje każdą z nich. Przy przewalutowaniu `kwota` oznacza ilość waluty obcej: `ZAKUP` kupuje walutę za PLN, a `SPRZEDAZ` sprzedaje ją za PLN. Kwoty muszą być dodatnie i mieć najwyżej 2 miejsca po przecinku.
 
 ## Podejście Database First
 
@@ -143,7 +151,9 @@ Definicje znajdują się w [backend/database/schema.sql](backend/database/schema
 
 | Tabela                     | Co przechowuje                                                    |
 | -------------------------- | ----------------------------------------------------------------- |
-| `konta`                    | Dane użytkowników, login, hasło oraz salda w PLN, EUR i USD.      |
+| `konta`                    | Dane użytkowników: login, hash hasła, imię i nazwisko.            |
+| `waluty`                   | Słownik obsługiwanych walut (kod, nazwa).                         |
+| `salda`                    | Saldo konta w danej walucie; brak wiersza oznacza saldo 0.        |
 | `historia_przelewów`       | Przelewy między kontami: nadawcę, odbiorcę, kwotę, walutę i datę. |
 | `historia_przewalutowania` | Wymiany walut: konto, waluty, kwoty, zastosowany kurs i datę.     |
 | `aktualne_kursy_walut`     | Bieżące kursy kupna i sprzedaży oraz czas aktualizacji.           |
@@ -153,15 +163,15 @@ Definicje znajdują się w [backend/database/schema.sql](backend/database/schema
 
 | Procedura                       | Co robi                                                                                                                   |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `przelew`                       | Przenosi środki między dwoma kontami w PLN, EUR lub USD i zapisuje historię. Sprawdza poprawność danych i dostępne saldo. |
-| `przewalutowanie`               | Wymienia PLN na EUR/USD lub odwrotnie, aktualizuje salda i zapisuje historię wraz z kursem.                               |
+| `przelew`                       | Przenosi środki między dwoma kontami w dowolnej walucie z `waluty` i zapisuje historię. Sprawdza poprawność danych i dostępne saldo. |
+| `przewalutowanie`               | Wymienia PLN na walutę obcą lub odwrotnie, aktualizuje salda i zapisuje historię wraz z kursem.                               |
 | `zmiana_aktualnego_kursu_walut` | Dodaje lub aktualizuje kurs kupna i sprzedaży podanej waluty oraz zwraca czas aktualizacji.                               |
 
 Procedury `przelew` i `przewalutowanie` blokują konta przez `FOR UPDATE` i zatwierdzają zmiany sald oraz zapis historii razem albo wcale — błąd zapisu historii powoduje wycofanie zmian sald.
 
 W procedurze `przewalutowanie` typ operacji jest opisany z perspektywy użytkownika:
-`ZAKUP` oznacza, że klient płaci PLN i otrzymuje EUR/USD po kursie sprzedaży kantoru,
-a `SPRZEDAZ` — że klient oddaje EUR/USD i otrzymuje PLN po kursie zakupu kantoru.
+`ZAKUP` oznacza, że klient płaci PLN i otrzymuje walutę obcą po kursie sprzedaży kantoru,
+a `SPRZEDAZ` — że klient oddaje walutę obcą i otrzymuje PLN po kursie zakupu kantoru.
 
 Zaokrąglenie kwoty PLN przy przewalutowaniu odbywa się po stronie bazy danych: procedura `przewalutowanie` używa `ROUND(kwota * v_kurs, 2)`, czyli zaokrągla wynik do dwóch miejsc po przecinku (groszy).
 

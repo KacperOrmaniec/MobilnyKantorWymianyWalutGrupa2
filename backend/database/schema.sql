@@ -10,16 +10,49 @@ CREATE TABLE IF NOT EXISTS public.konta (
     login VARCHAR(100) NOT NULL UNIQUE,
     haslo TEXT NOT NULL,
     "Imie" VARCHAR(100) NOT NULL,
-    "Nazwisko" VARCHAR(100) NOT NULL,
+    "Nazwisko" VARCHAR(100) NOT NULL
+);
 
-    "Aktualne_Saldo_PLN" NUMERIC(18,2) NOT NULL DEFAULT 0
-        CHECK ("Aktualne_Saldo_PLN" >= 0),
 
-    "Aktualne_Saldo_EUR" NUMERIC(18,2) NOT NULL DEFAULT 0
-        CHECK ("Aktualne_Saldo_EUR" >= 0),
+-- =====================================================
+-- 1a. TABELA: waluty
+-- =====================================================
+-- Słownik obsługiwanych walut. Nowa waluta = jeden INSERT poniżej.
+-- Kod musi występować w tabeli C NBP (USD, EUR, CHF, GBP, JPY, CZK,
+-- DKK, NOK, SEK, CAD, AUD, HUF, XDR). PLN to waluta rozliczeniowa.
 
-    "Aktualne_Saldo_USD" NUMERIC(18,2) NOT NULL DEFAULT 0
-        CHECK ("Aktualne_Saldo_USD" >= 0)
+CREATE TABLE IF NOT EXISTS public.waluty (
+    kod VARCHAR(10) PRIMARY KEY,
+    nazwa VARCHAR(50) NOT NULL
+);
+
+INSERT INTO public.waluty (kod, nazwa)
+VALUES
+    ('PLN', 'złoty polski'),
+    ('EUR', 'euro'),
+    ('USD', 'dolar amerykański'),
+    ('CHF', 'frank szwajcarski'),
+    ('GBP', 'funt szterling')
+ON CONFLICT (kod) DO NOTHING;
+
+
+-- =====================================================
+-- 1b. TABELA: salda
+-- =====================================================
+-- Jeden wiersz na konto i walutę. Brak wiersza oznacza saldo 0;
+-- wiersz powstaje przy pierwszym uznaniu konta w danej walucie.
+
+CREATE TABLE IF NOT EXISTS public.salda (
+    id_konta BIGINT NOT NULL
+        REFERENCES public.konta(id),
+
+    waluta VARCHAR(10) NOT NULL
+        REFERENCES public.waluty(kod),
+
+    saldo NUMERIC(18,2) NOT NULL DEFAULT 0
+        CHECK (saldo >= 0),
+
+    PRIMARY KEY (id_konta, waluta)
 );
 
 
@@ -27,19 +60,19 @@ CREATE TABLE IF NOT EXISTS public.konta (
 -- DODANIE TESTOWYCH UŻYTKOWNIKÓW
 -- =====================================================
 
-INSERT INTO public.konta (
-    login,
-    haslo,
-    "Imie",
-    "Nazwisko",
-    "Aktualne_Saldo_PLN",
-    "Aktualne_Saldo_EUR",
-    "Aktualne_Saldo_USD"
-)
+INSERT INTO public.konta (login, haslo, "Imie", "Nazwisko")
 VALUES
-    ('test', 'test123', 'Adam', 'Kowalski', 2000, 2000, 2000),
-    ('test2', 'test123', 'Adam', 'Kowalski', 2000, 2000, 2000)
+    ('test', 'test123', 'Adam', 'Kowalski'),
+    ('test2', 'test123', 'Adam', 'Kowalski')
 ON CONFLICT (login) DO NOTHING;
+
+-- Po 2000 w każdej walucie, tylko przy pierwszym utworzeniu.
+INSERT INTO public.salda (id_konta, waluta, saldo)
+SELECT k.id, w.kod, 2000
+FROM public.konta AS k
+CROSS JOIN public.waluty AS w
+WHERE k.login IN ('test', 'test2')
+ON CONFLICT (id_konta, waluta) DO NOTHING;
 
 
 -- =====================================================
@@ -60,7 +93,7 @@ CREATE TABLE IF NOT EXISTS public."historia_przelewów" (
         CHECK ("Kwota" > 0),
 
     "Waluta" VARCHAR(10) NOT NULL
-        CHECK ("Waluta" IN ('PLN', 'EUR', 'USD')),
+        REFERENCES public.waluty(kod),
 
     CONSTRAINT rozne_konta
         CHECK (id_nadawcy <> id_odbiorcy)
@@ -81,8 +114,10 @@ CREATE TABLE IF NOT EXISTS public.historia_przewalutowania (
     "Kurs_przewalutowania" NUMERIC(18,6) NOT NULL
         CHECK ("Kurs_przewalutowania" > 0),
 
-    "Waluta_sprzedana" VARCHAR(10) NOT NULL,
-    "Waluta_kupiona" VARCHAR(10) NOT NULL,
+    "Waluta_sprzedana" VARCHAR(10) NOT NULL
+        REFERENCES public.waluty(kod),
+    "Waluta_kupiona" VARCHAR(10) NOT NULL
+        REFERENCES public.waluty(kod),
 
     "Kwota_sprzedana" NUMERIC(18,2) NOT NULL
         CHECK ("Kwota_sprzedana" > 0),
@@ -100,7 +135,8 @@ CREATE TABLE IF NOT EXISTS public."aktualne_kursy_walut" (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "Timestamp" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    waluta VARCHAR(10) NOT NULL UNIQUE,
+    waluta VARCHAR(10) NOT NULL UNIQUE
+        REFERENCES public.waluty(kod),
 
     kurs_zakupu NUMERIC(18,6) NOT NULL
         CHECK (kurs_zakupu > 0),
@@ -116,7 +152,8 @@ CREATE TABLE IF NOT EXISTS public."aktualne_kursy_walut" (
 
 CREATE TABLE IF NOT EXISTS public."historyczne_kursy_walut" (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    waluta VARCHAR(10) NOT NULL,
+    waluta VARCHAR(10) NOT NULL
+        REFERENCES public.waluty(kod),
 
     kurs_avg NUMERIC(18,6) NOT NULL
         CHECK (kurs_avg > 0),
@@ -141,7 +178,6 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     v_waluta VARCHAR(10);
-    v_saldo NUMERIC(18,2);
     v_liczba_kont INTEGER;
 BEGIN
 
@@ -159,8 +195,7 @@ BEGIN
 
     v_waluta := UPPER(BTRIM(waluta));
 
-    IF v_waluta IS NULL
-       OR v_waluta NOT IN ('PLN', 'EUR', 'USD') THEN
+    IF NOT EXISTS (SELECT 1 FROM public.waluty WHERE kod = v_waluta) THEN
         RAISE EXCEPTION 'Nieobslugiwana waluta';
     END IF;
 
@@ -178,47 +213,23 @@ BEGIN
         RAISE EXCEPTION 'Nadawca lub odbiorca nie istnieje';
     END IF;
 
-    -- Sprawdzenie salda nadawcy
-    SELECT CASE v_waluta
-        WHEN 'PLN' THEN k."Aktualne_Saldo_PLN"
-        WHEN 'EUR' THEN k."Aktualne_Saldo_EUR"
-        WHEN 'USD' THEN k."Aktualne_Saldo_USD"
-    END
-    INTO v_saldo
-    FROM public.konta AS k
-    WHERE k.id = id_konta_nadawcy;
+    -- Zmniejszenie salda nadawcy (brak wiersza = saldo 0)
+    -- (aliasy, bo parametr "waluta" ma tę samą nazwę co kolumna)
+    UPDATE public.salda AS s
+    SET saldo = s.saldo - kwota
+    WHERE s.id_konta = id_konta_nadawcy
+      AND s.waluta = v_waluta
+      AND s.saldo >= kwota;
 
-    IF v_saldo < kwota THEN
+    IF NOT FOUND THEN
         RAISE EXCEPTION 'Niewystarczajace saldo nadawcy';
     END IF;
 
-    -- Zmniejszenie salda nadawcy
-    UPDATE public.konta
-    SET
-        "Aktualne_Saldo_PLN" = "Aktualne_Saldo_PLN"
-            - CASE WHEN v_waluta = 'PLN' THEN kwota ELSE 0 END,
-
-        "Aktualne_Saldo_EUR" = "Aktualne_Saldo_EUR"
-            - CASE WHEN v_waluta = 'EUR' THEN kwota ELSE 0 END,
-
-        "Aktualne_Saldo_USD" = "Aktualne_Saldo_USD"
-            - CASE WHEN v_waluta = 'USD' THEN kwota ELSE 0 END
-
-    WHERE id = id_konta_nadawcy;
-
     -- Zwiekszenie salda odbiorcy
-    UPDATE public.konta
-    SET
-        "Aktualne_Saldo_PLN" = "Aktualne_Saldo_PLN"
-            + CASE WHEN v_waluta = 'PLN' THEN kwota ELSE 0 END,
-
-        "Aktualne_Saldo_EUR" = "Aktualne_Saldo_EUR"
-            + CASE WHEN v_waluta = 'EUR' THEN kwota ELSE 0 END,
-
-        "Aktualne_Saldo_USD" = "Aktualne_Saldo_USD"
-            + CASE WHEN v_waluta = 'USD' THEN kwota ELSE 0 END
-
-    WHERE id = id_konta_nabywcy;
+    INSERT INTO public.salda AS s (id_konta, waluta, saldo)
+    VALUES (id_konta_nabywcy, v_waluta, kwota)
+    ON CONFLICT ON CONSTRAINT salda_pkey
+    DO UPDATE SET saldo = s.saldo + EXCLUDED.saldo;
 
     -- Historia przelewu
     INSERT INTO public."historia_przelewów"
@@ -249,8 +260,10 @@ DECLARE
     v_kurs NUMERIC(18,6);
     v_kwota_pln NUMERIC(18,2);
 
-    v_saldo_pln NUMERIC(18,2);
-    v_saldo_waluty NUMERIC(18,2);
+    v_waluta_sprzedana VARCHAR(10);
+    v_waluta_kupiona VARCHAR(10);
+    v_kwota_sprzedana NUMERIC(18,2);
+    v_kwota_kupiona NUMERIC(18,2);
 BEGIN
 
     v_waluta := UPPER(BTRIM("Waluta"));
@@ -266,7 +279,8 @@ BEGIN
         RAISE EXCEPTION 'Nieprawidlowa kwota';
     END IF;
 
-    IF v_waluta IS NULL OR v_waluta NOT IN ('EUR', 'USD') THEN
+    IF v_waluta = 'PLN'
+       OR NOT EXISTS (SELECT 1 FROM public.waluty WHERE kod = v_waluta) THEN
         RAISE EXCEPTION 'Nieobslugiwana waluta';
     END IF;
 
@@ -274,14 +288,8 @@ BEGIN
         RAISE EXCEPTION 'Nieprawidlowy typ transakcji';
     END IF;
 
-    -- Pobranie i zablokowanie konta
-    SELECT
-        k."Aktualne_Saldo_PLN",
-        CASE v_waluta
-            WHEN 'EUR' THEN k."Aktualne_Saldo_EUR"
-            WHEN 'USD' THEN k."Aktualne_Saldo_USD"
-        END
-    INTO v_saldo_pln, v_saldo_waluty
+    -- Zablokowanie konta (wszystkie zmiany sald konta idą po kolei)
+    PERFORM 1
     FROM public.konta AS k
     WHERE k.id = id_konta
     FOR UPDATE;
@@ -310,65 +318,46 @@ BEGIN
         RAISE EXCEPTION 'Kwota po przeliczeniu jest zbyt mala';
     END IF;
 
-    -- SPRZEDAZ: użytkownik sprzedaje EUR/USD i otrzymuje PLN
     IF v_typ = 'SPRZEDAZ' THEN
-
-        IF v_saldo_waluty < kwota THEN
-            RAISE EXCEPTION 'Niewystarczajace saldo walutowe';
-        END IF;
-
-        UPDATE public.konta
-        SET
-            "Aktualne_Saldo_PLN" = "Aktualne_Saldo_PLN"
-                + v_kwota_pln,
-
-            "Aktualne_Saldo_EUR" = "Aktualne_Saldo_EUR"
-                - CASE WHEN v_waluta = 'EUR' THEN kwota ELSE 0 END,
-
-            "Aktualne_Saldo_USD" = "Aktualne_Saldo_USD"
-                - CASE WHEN v_waluta = 'USD' THEN kwota ELSE 0 END
-
-        WHERE id = id_konta;
-
-        INSERT INTO public.historia_przewalutowania
-            (id_konta, "Kurs_przewalutowania",
-             "Waluta_sprzedana", "Waluta_kupiona",
-             "Kwota_sprzedana", "Kwota_kupiona")
-        VALUES
-            (id_konta, v_kurs,
-             v_waluta, 'PLN',
-             kwota, v_kwota_pln);
-
-    -- ZAKUP: użytkownik kupuje EUR/USD za PLN
+        -- Użytkownik sprzedaje walutę i otrzymuje PLN
+        v_waluta_sprzedana := v_waluta;
+        v_kwota_sprzedana := kwota;
+        v_waluta_kupiona := 'PLN';
+        v_kwota_kupiona := v_kwota_pln;
     ELSE
-
-        IF v_saldo_pln < v_kwota_pln THEN
-            RAISE EXCEPTION 'Niewystarczajace saldo PLN';
-        END IF;
-
-        UPDATE public.konta
-        SET
-            "Aktualne_Saldo_PLN" = "Aktualne_Saldo_PLN"
-                - v_kwota_pln,
-
-            "Aktualne_Saldo_EUR" = "Aktualne_Saldo_EUR"
-                + CASE WHEN v_waluta = 'EUR' THEN kwota ELSE 0 END,
-
-            "Aktualne_Saldo_USD" = "Aktualne_Saldo_USD"
-                + CASE WHEN v_waluta = 'USD' THEN kwota ELSE 0 END
-
-        WHERE id = id_konta;
-
-        INSERT INTO public.historia_przewalutowania
-            (id_konta, "Kurs_przewalutowania",
-             "Waluta_sprzedana", "Waluta_kupiona",
-             "Kwota_sprzedana", "Kwota_kupiona")
-        VALUES
-            (id_konta, v_kurs,
-             'PLN', v_waluta,
-             v_kwota_pln, kwota);
-
+        -- ZAKUP: użytkownik kupuje walutę za PLN
+        v_waluta_sprzedana := 'PLN';
+        v_kwota_sprzedana := v_kwota_pln;
+        v_waluta_kupiona := v_waluta;
+        v_kwota_kupiona := kwota;
     END IF;
+
+    -- Zmniejszenie salda sprzedawanej waluty (brak wiersza = saldo 0)
+    -- (parametr id_konta ma tę samą nazwę co kolumna, stąd przewalutowanie.id_konta)
+    UPDATE public.salda AS s
+    SET saldo = s.saldo - v_kwota_sprzedana
+    WHERE s.id_konta = przewalutowanie.id_konta
+      AND s.waluta = v_waluta_sprzedana
+      AND s.saldo >= v_kwota_sprzedana;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Niewystarczajace saldo %', v_waluta_sprzedana;
+    END IF;
+
+    -- Zwiększenie salda kupowanej waluty
+    INSERT INTO public.salda AS s (id_konta, waluta, saldo)
+    VALUES (przewalutowanie.id_konta, v_waluta_kupiona, v_kwota_kupiona)
+    ON CONFLICT ON CONSTRAINT salda_pkey
+    DO UPDATE SET saldo = s.saldo + EXCLUDED.saldo;
+
+    INSERT INTO public.historia_przewalutowania
+        (id_konta, "Kurs_przewalutowania",
+         "Waluta_sprzedana", "Waluta_kupiona",
+         "Kwota_sprzedana", "Kwota_kupiona")
+    VALUES
+        (id_konta, v_kurs,
+         v_waluta_sprzedana, v_waluta_kupiona,
+         v_kwota_sprzedana, v_kwota_kupiona);
 
 END;
 $$;

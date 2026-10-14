@@ -28,19 +28,19 @@ Endpointy można testować w Postmanie. Konfiguracja bazy i User Secrets jest op
 
 | Metoda | Adres | Działanie |
 |---|---|---|
-| GET | `/konta/{id}/saldo` | Salda PLN, EUR i USD. |
+| GET | `/konta/{id}/saldo` | Salda we wszystkich walutach: `{ id, salda: [{ waluta, nazwa, saldo }] }`, PLN pierwszy, brak środków = `0`. |
 | POST | `/konta` | Dodanie użytkownika z zerowymi saldami: `login`, `haslo`, `imie`, `nazwisko`. |
 | POST | `/konta/{id}/doladowanie` | Dodanie `kwota` do salda PLN. |
 | GET | `/konta/{id}/historia-przelewow` | Przelewy wysłane i odebrane, od najnowszych, z polami `nazwaNadawcy` i `nazwaOdbiorcy` (imię i nazwisko). |
 | GET | `/konta/{id}/historia-przewalutowania` | Przewalutowania, od najnowszych. |
-| GET | `/kursy` | Odświeża EUR/USD z tabeli C NBP i zwraca aktualne kursy z bazy. |
+| GET | `/kursy` | Odświeża wszystkie waluty z `waluty` z tabeli C NBP i zwraca aktualne kursy z bazy. |
 | GET | `/kursy/historyczne` | Uzupełnia ostatnie 7 dni z tabeli A NBP i zwraca całą historię z bazy. |
-| POST | `/przelewy` | Procedura `przelew`: `idNadawcy`, `idOdbiorcy`, `kwota`, `waluta` (PLN/EUR/USD). |
-| POST | `/konta/{id}/przewalutowanie` | Procedura `przewalutowanie`: `waluta` (EUR/USD), `kwota`, `typTransakcji`. |
+| POST | `/przelewy` | Procedura `przelew`: `idNadawcy`, `idOdbiorcy`, `kwota`, `waluta` (dowolna z tabeli `waluty`). |
+| POST | `/konta/{id}/przewalutowanie` | Procedura `przewalutowanie`: `waluta` (z tabeli `waluty`, bez PLN), `kwota`, `typTransakcji`. |
 
 Kwoty muszą być dodatnie i mieć najwyżej dwa miejsca po przecinku.
-Przy przewalutowaniu `kwota` zawsze oznacza ilość EUR/USD. Typ transakcji jest z perspektywy użytkownika: `ZAKUP` oznacza zakup EUR/USD za PLN po `kurs_sprzedazy` kantoru, a `SPRZEDAZ` oznacza sprzedaż EUR/USD i otrzymanie PLN po `kurs_zakupu` kantoru.
-Przed każdym przewalutowaniem backend automatycznie pobiera i zapisuje najnowsze kursy EUR/USD z NBP, a następnie wywołuje procedurę wymiany. Jeśli pobranie kursów się nie uda, przewalutowanie nie zostanie wykonane. Nie trzeba wcześniej wywoływać `/kursy`.
+Przy przewalutowaniu `kwota` zawsze oznacza ilość waluty obcej. Typ transakcji jest z perspektywy użytkownika: `ZAKUP` oznacza zakup waluty za PLN po `kurs_sprzedazy` kantoru, a `SPRZEDAZ` oznacza sprzedaż waluty i otrzymanie PLN po `kurs_zakupu` kantoru.
+Przed każdym przewalutowaniem backend automatycznie pobiera i zapisuje najnowsze kursy wszystkich walut z NBP, a następnie wywołuje procedurę wymiany. Jeśli pobranie kursów się nie uda, przewalutowanie nie zostanie wykonane. Nie trzeba wcześniej wywoływać `/kursy`.
 W odpowiedzi `/kursy` pola `kursZakupuPrzezKantor` i `kursSprzedazyPrzezKantor` oznaczają odpowiednio kurs, po którym kantor kupuje walutę od użytkownika, i kurs, po którym sprzedaje ją użytkownikowi.
 
 `/kursy/historyczne` pobiera kursy średnie od dziś minus 6 dni do dziś (według czasu w Polsce). Zapisuje `mid` w `kurs_avg`, a datę publikacji w `data`. Zapis według waluty i daty nie tworzy duplikatów; starsze wpisy zostają w bazie i są również zwracane. Dni bez notowań nie są sztucznie uzupełniane.

@@ -16,10 +16,11 @@ public class PrzelewyController(KantorDbContext db) : ControllerBase
     public async Task<IActionResult> WykonajPrzelew([FromBody] ZrobPrzelew request)
     {
         var waluta = request.Waluta?.Trim().ToUpperInvariant();
-        if (!KwotaValidator.PoprawnaKwota(request.Kwota) || waluta is not ("PLN" or "EUR" or "USD") ||
-            request.IdNadawcy <= 0 || request.IdOdbiorcy <= 0 || request.IdNadawcy == request.IdOdbiorcy)
+        if (!KwotaValidator.PoprawnaKwota(request.Kwota) || waluta is null ||
+            request.IdNadawcy <= 0 || request.IdOdbiorcy <= 0 || request.IdNadawcy == request.IdOdbiorcy ||
+            !await db.Waluty.AnyAsync(w => w.Kod == waluta))
         {
-            return BadRequest(new { error = "Podaj dwa różne konta, dodatnią kwotę z najwyżej 2 miejscami po przecinku oraz walutę PLN, EUR lub USD." });
+            return BadRequest(new { error = "Podaj dwa różne konta, dodatnią kwotę z najwyżej 2 miejscami po przecinku oraz obsługiwaną walutę." });
         }
 
         try

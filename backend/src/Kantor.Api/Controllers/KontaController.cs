@@ -16,16 +16,24 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
 {
 
 
-    // Pobiera salda PLN, EUR i USD użytkownika.
+    // Pobiera salda użytkownika we wszystkich walutach (PLN pierwszy, brak wiersza = 0).
     [HttpGet("{id:long}/saldo")]
     public async Task<IActionResult> PobierzSaldo(long id)
     {
-        var saldo = await db.Konta.AsNoTracking()
-            .Where(k => k.Id == id)
-            .Select(k => new { k.Id, k.AktualneSaldoPln, k.AktualneSaldoEur, k.AktualneSaldoUsd })
-            .SingleOrDefaultAsync();
+        if (!await db.Konta.AnyAsync(k => k.Id == id))
+            return NotFound(new { error = "Konto nie istnieje." });
 
-        return saldo is null ? NotFound(new { error = "Konto nie istnieje." }) : Ok(saldo);
+        var salda = await db.Waluty.AsNoTracking()
+            .OrderBy(w => w.Kod != "PLN").ThenBy(w => w.Kod)
+            .Select(w => new
+            {
+                Waluta = w.Kod,
+                w.Nazwa,
+                Saldo = w.Salda.Where(s => s.IdKonta == id).Select(s => s.Kwota).FirstOrDefault()
+            })
+            .ToListAsync();
+
+        return Ok(new { Id = id, Salda = salda });
     }
 
 
@@ -80,12 +88,17 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
 
         try
         {
-            var zmienione = await db.Konta.Where(k => k.Id == id)
-                .ExecuteUpdateAsync(s => s.SetProperty(k => k.AktualneSaldoPln, k => k.AktualneSaldoPln + request.Kwota));
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO public.salda AS s (id_konta, waluta, saldo)
+                VALUES ({id}, 'PLN', {request.Kwota})
+                ON CONFLICT ON CONSTRAINT salda_pkey DO UPDATE SET saldo = s.saldo + EXCLUDED.saldo
+                """);
 
-            return zmienione == 0
-                ? NotFound(new { error = "Konto nie istnieje." })
-                : Ok(new { message = "Saldo PLN zostało doładowane." });
+            return Ok(new { message = "Saldo PLN zostało doładowane." });
+        }
+        catch (PostgresException ex) when (ex.SqlState == "23503")
+        {
+            return NotFound(new { error = "Konto nie istnieje." });
         }
         catch (PostgresException)
         {
@@ -146,7 +159,7 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
 
 
 
-    // Odświeża kursy NBP i wymienia PLN na EUR/USD lub odwrotnie.
+    // Odświeża kursy NBP i wymienia PLN na walutę obcą lub odwrotnie.
     [HttpPost("{id:long}/przewalutowanie")]
     public async Task<IActionResult> PrzewalutujKonto(long id, [FromBody] PrzewalutujSaldo request,
         CancellationToken cancellationToken)
@@ -162,12 +175,12 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
 
         if (!KwotaValidator.PoprawnaKwota(request.Kwota))
         {
-            return BadRequest(new { error = "dodatnią kwotę EUR/USD z najwyżej 2 miejscami po przecinku" });
+            return BadRequest(new { error = "Podaj dodatnią kwotę waluty z najwyżej 2 miejscami po przecinku." });
         }
 
-        if (waluta is not ("EUR" or "USD"))
+        if (waluta is null or "PLN" || !await db.Waluty.AnyAsync(w => w.Kod == waluta, cancellationToken))
         {
-            return BadRequest(new { error = "W walucie musi być wpisana kwota EURO albo USD" });
+            return BadRequest(new { error = "Nieobsługiwana waluta. Listę walut zwraca GET /kursy." });
         }
 
         if (typ is not ("ZAKUP" or "SPRZEDAZ"))
@@ -180,7 +193,7 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
             // Najpierw zapisuje najnowsze kursy, dopiero potem wykonuje wymianę.
             await nbp.AktualizujAktualneKursy(cancellationToken);
 
-            // Kwota oznacza ilość EUR/USD. ZAKUP i SPRZEDAZ są z perspektywy użytkownika.
+            // Kwota oznacza ilość waluty obcej. ZAKUP i SPRZEDAZ są z perspektywy użytkownika.
             await db.Database.ExecuteSqlInterpolatedAsync(
                 $"CALL public.przewalutowanie({id}, {waluta}::varchar, {request.Kwota}, {typ}::varchar)",
                 cancellationToken);

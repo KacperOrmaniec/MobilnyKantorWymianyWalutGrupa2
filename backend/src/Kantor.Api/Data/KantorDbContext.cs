@@ -22,6 +22,10 @@ public partial class KantorDbContext : DbContext
 
     public virtual DbSet<Konto> Konta { get; set; }
 
+    public virtual DbSet<Saldo> Salda { get; set; }
+
+    public virtual DbSet<Waluta> Waluty { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AktualneKursyWalut>(entity =>
@@ -137,21 +141,51 @@ public partial class KantorDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
-            entity.Property(e => e.AktualneSaldoEur)
-                .HasPrecision(18, 2)
-                .HasColumnName("Aktualne_Saldo_EUR");
-            entity.Property(e => e.AktualneSaldoPln)
-                .HasPrecision(18, 2)
-                .HasColumnName("Aktualne_Saldo_PLN");
-            entity.Property(e => e.AktualneSaldoUsd)
-                .HasPrecision(18, 2)
-                .HasColumnName("Aktualne_Saldo_USD");
             entity.Property(e => e.Haslo).HasColumnName("haslo");
             entity.Property(e => e.Imie).HasMaxLength(100);
             entity.Property(e => e.Login)
                 .HasMaxLength(100)
                 .HasColumnName("login");
             entity.Property(e => e.Nazwisko).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Saldo>(entity =>
+        {
+            entity.HasKey(e => new { e.IdKonta, e.Waluta }).HasName("salda_pkey");
+
+            entity.ToTable("salda");
+
+            entity.Property(e => e.IdKonta).HasColumnName("id_konta");
+            entity.Property(e => e.Kwota)
+                .HasPrecision(18, 2)
+                .HasColumnName("saldo");
+            entity.Property(e => e.Waluta)
+                .HasMaxLength(10)
+                .HasColumnName("waluta");
+
+            entity.HasOne(d => d.IdKontaNavigation).WithMany(p => p.Salda)
+                .HasForeignKey(d => d.IdKonta)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("salda_id_konta_fkey");
+
+            entity.HasOne(d => d.WalutaNavigation).WithMany(p => p.Salda)
+                .HasForeignKey(d => d.Waluta)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("salda_waluta_fkey");
+        });
+
+        modelBuilder.Entity<Waluta>(entity =>
+        {
+            entity.HasKey(e => e.Kod).HasName("waluty_pkey");
+
+            entity.ToTable("waluty");
+
+            entity.Property(e => e.Kod)
+                .HasMaxLength(10)
+                .HasColumnName("kod");
+            entity.Property(e => e.Nazwa)
+                .HasMaxLength(50)
+                .HasColumnName("nazwa");
         });
 
         OnModelCreatingPartial(modelBuilder);
