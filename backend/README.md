@@ -7,12 +7,13 @@ src/Kantor.Api/        ASP.NET Core Web API
   Data/               kontekst bazy danych
   Models/             modele bazy i dane żądań
   Validation/         walidacja kwot
-  Services/           pobieranie i zapis kursów NBP
+  Services/           pobieranie i zapis kursów NBP, odświeżanie w tle
+database/             schema.sql (tabele, procedury, triggery, seed) i start-db.sh
+tests/Kantor.Api.Tests/  testy xUnit
 ```
 
 API korzysta z kontrolerów z `[ApiController]` i `ControllerBase`.
 `Program.cs` konfiguruje aplikację i rejestruje kontrolery przez `AddControllers()` oraz `MapControllers()`.
-Adresy endpointów i dane żądań pozostają takie same.
 
 ```bash
 cd backend
@@ -79,7 +80,7 @@ dotnet test Kantor.slnx
 KANTOR_TEST_DB="Host=localhost;Port=5432;Database=kantor;Username=kantor;Password=..." dotnet test Kantor.slnx
 ```
 
-Bez zmiennej `KANTOR_TEST_DB` testy procedur są pomijane (Skip). Baza musi mieć wykonany `schema.sql` (np. kontener `db` z `docker compose`). Każdy test tworzy własne konta (unikalne loginy) w transakcji wycofywanej na końcu, więc baza zostaje bez zmian.
-Scenariusze: udany przelew zmienia oba salda i zapisuje historię; brak środków kończy się błędem `P0001` bez zmian sald; `ZAKUP` i `SPRZEDAZ` przy kursie ustawionym przez `zmiana_aktualnego_kursu_walut` dają poprawne, zaokrąglone kwoty i zapisują kurs w historii; nieobsługiwana waluta (lub PLN) przy przewalutowaniu daje `P0001`.
+Bez zmiennej `KANTOR_TEST_DB` testy procedur i alertów są pomijane (Skip). Baza musi mieć wykonany `schema.sql` (np. kontener `db` z `docker compose`). Każdy test tworzy własne konta (unikalne loginy) w transakcji wycofywanej na końcu, więc baza zostaje bez zmian.
+Scenariusze: udany przelew zmienia oba salda i zapisuje historię; brak środków kończy się błędem `P0001` bez zmian sald; `ZAKUP` i `SPRZEDAZ` przy kursie ustawionym przez `zmiana_aktualnego_kursu_walut` dają poprawne, zaokrąglone kwoty i zapisują kurs w historii; nieobsługiwana waluta (lub PLN) przy przewalutowaniu daje `P0001`; zmiana kursu oznacza tylko alerty z osiągniętym progiem, a alert spełniony już przy tworzeniu jest od razu oznaczony.
 
 Nowe projekty dodajemy do `src/` lub `tests/` i rejestrujemy: `dotnet sln Kantor.slnx add <ścieżka.csproj>`.

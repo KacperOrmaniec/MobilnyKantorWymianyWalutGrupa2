@@ -44,6 +44,7 @@ backend/        .NET Web API
 mobile/         aplikacja React Native (Expo)
 docs/           dokumentacja, backlog, raport
 docs/diagrams/  pliki źródłowe diagramów (UML, ERD)
+postman/        kolekcje requestów (backend, NBP)
 .backlog/       zadania (backlog CLI)
 ```
 
@@ -141,7 +142,7 @@ cd backend
 dotnet test Kantor.slnx
 ```
 
-Testy `KwotaValidator` działają zawsze. Testy procedur `przelew` i `przewalutowanie` potrzebują bazy z wykonanym `schema.sql` i są pomijane (Skip), dopóki nie ustawisz zmiennej `KANTOR_TEST_DB`:
+Testy `KwotaValidator` działają zawsze. Testy procedur `przelew` i `przewalutowanie` oraz triggerów alertów kursowych potrzebują bazy z wykonanym `schema.sql` i są pomijane (Skip), dopóki nie ustawisz zmiennej `KANTOR_TEST_DB`:
 
 ```powershell
 $env:KANTOR_TEST_DB = "Host=localhost;Port=5432;Database=kantor;Username=kantor;Password=TWOJE_HASLO"
