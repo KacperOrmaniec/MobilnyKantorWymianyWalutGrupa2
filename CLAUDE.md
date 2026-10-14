@@ -49,7 +49,7 @@ Tests: `backend/tests/Kantor.Api.Tests` (xUnit). `KwotaValidator` unit tests alw
 - Mobile is template + tab layout only (`index`, `profile`, `exchange` screens WIP). There is no API client yet. `app.json` references `./assets/...` images, but `mobile/assets/` is not in the repo.
 - Backlog statuses in `.backlog/tasks.yaml` lag behind the code: most backend tasks still show `backlog` even though they are implemented.
 - Postman collections are in `postman/`.
-- Compose services have no `container_name` (containers are `<project>-db-1` etc.), so several stacks can run with `-p <name>`. The `api` container runs in Production (no OpenAPI) and listens on 8080 → host `${API_PORT:-5171}`. The compose file requires `JWT_KEY` in `.env` even when only `db` is started.
+- Compose services have no `container_name` (containers are `<project>-db-1` etc.), so several stacks can run with `-p <name>`. The `api` container runs in Production (no OpenAPI) and listens on 8080 → host `${API_PORT:-5171}`. `JWT_KEY` is optional for compose itself (`db` starts without it); the `api` container refuses to start without a 32+ char key.
 - `GET /kursy/historyczne` re-fetches the whole requested range from NBP on every call (no "only missing days" logic yet).
 
 ## Workflow
