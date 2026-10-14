@@ -192,6 +192,9 @@ Konto zawsze wynika z tokena (`/konta/me/...`), więc użytkownik ma dostęp tyl
 | GET | `/kursy/historyczne?waluta=EUR&od=2026-09-01&do=2026-10-14` | — | Kursy średnie NBP z zakresu dat (parametry opcjonalne, domyślnie ostatnie 7 dni i wszystkie waluty), rosnąco po dacie. | — |
 | POST | `/przelewy` | tak | Wykonuje przelew z konta zalogowanego do konta o podanym loginie. | `{"loginOdbiorcy":"anna","kwota":50,"waluta":"PLN"}` |
 | POST | `/konta/me/przewalutowanie` | tak | Wymienia PLN na walutę obcą lub odwrotnie. | `{"waluta":"EUR","kwota":10,"typTransakcji":"ZAKUP"}` |
+| POST | `/konta/me/alerty` | tak | Tworzy alert kursowy (`201`); `ZAKUP`: kurs sprzedaży ≤ `prog`, `SPRZEDAZ`: kurs zakupu ≥ `prog`. | `{"waluta":"EUR","typ":"ZAKUP","prog":4.25}` |
+| GET | `/konta/me/alerty` | tak | Lista alertów od najnowszych; spełnione mają `spelniono` i `kursSpelnienia`. | — |
+| DELETE | `/konta/me/alerty/{id}` | tak | Usuwa własny alert (`204`, cudzy lub nieistniejący → `404`). | — |
 
 Rejestracja: login 3–100 znaków (litery bez polskich znaków, cyfry, `.`, `_`, `-`), hasło min. 8 znaków, imię i nazwisko niepuste (maks. 100 znaków). Spacje na początku i końcu są obcinane.
 Zły login i złe hasło przy logowaniu dają ten sam `401` z komunikatem `Nieprawidłowy login lub hasło.`.
@@ -220,6 +223,7 @@ Definicje znajdują się w [backend/database/schema.sql](backend/database/schema
 | `historia_doladowan`       | Doładowania konta: konto, kwotę, walutę (PLN) i datę.             |
 | `aktualne_kursy_walut`     | Bieżące kursy kupna i sprzedaży oraz czas aktualizacji.           |
 | `historyczne_kursy_walut`  | Średnie kursy walut dla poszczególnych dni.                       |
+| `alerty_kursowe`           | Alerty kursowe użytkowników: waluta, typ, próg i moment spełnienia. |
 
 ### Procedury
 
@@ -229,6 +233,8 @@ Definicje znajdują się w [backend/database/schema.sql](backend/database/schema
 | `przewalutowanie`               | Wymienia PLN na walutę obcą lub odwrotnie, aktualizuje salda i zapisuje historię wraz z kursem.                               |
 | `doladowanie`                   | Dodaje kwotę do salda PLN konta i zapisuje wpis w `historia_doladowan`.                                                   |
 | `zmiana_aktualnego_kursu_walut` | Dodaje lub aktualizuje kurs kupna i sprzedaży podanej waluty oraz zwraca czas aktualizacji.                               |
+
+Triggery `sprawdz_alerty_kursowe` (po każdej zmianie w `aktualne_kursy_walut`) i `sprawdz_nowy_alert` (przy tworzeniu alertu) ustawiają `spelniono` i `kurs_spelnienia` alertów, których próg został osiągnięty. Alert spełnia się tylko raz.
 
 Procedury `przelew`, `przewalutowanie` i `doladowanie` blokują konta przez `FOR UPDATE` i zatwierdzają zmiany sald oraz zapis historii razem albo wcale — błąd zapisu historii powoduje wycofanie zmian sald.
 

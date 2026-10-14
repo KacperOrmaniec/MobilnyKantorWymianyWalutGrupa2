@@ -40,6 +40,9 @@ Endpointy można testować w Postmanie. Konfiguracja bazy i User Secrets jest op
 | GET | `/kursy/historyczne?waluta=&od=&do=` | Kursy średnie z tabeli A NBP dla zakresu dat, rosnąco po dacie (pod wykres). Parametry opcjonalne. |
 | POST | `/przelewy` | Procedura `przelew`: nadawca z tokena, `loginOdbiorcy`, `kwota`, `waluta` (dowolna z tabeli `waluty`). Nieznany odbiorca → `404`, przelew do siebie → `400`. |
 | POST | `/konta/me/przewalutowanie` | Procedura `przewalutowanie`: `waluta` (z tabeli `waluty`, bez PLN), `kwota`, `typTransakcji`. |
+| POST | `/konta/me/alerty` | Alert kursowy: `waluta` (bez PLN), `typ` (`ZAKUP`/`SPRZEDAZ`), `prog` (> 0, max 6 miejsc po przecinku); `201` z alertem. Max 20 niespełnionych alertów na konto (`400`). |
+| GET | `/konta/me/alerty` | Alerty od najnowszych: `{ id, waluta, typ, prog, utworzono, spelniono, kursSpelnienia, aktualnyKurs }`. |
+| DELETE | `/konta/me/alerty/{id}` | Usuwa własny alert: `204`; cudzy lub nieistniejący → `404`. |
 
 Kwoty muszą być dodatnie i mieć najwyżej dwa miejsca po przecinku.
 Przy przewalutowaniu `kwota` zawsze oznacza ilość waluty obcej. Typ transakcji jest z perspektywy użytkownika: `ZAKUP` oznacza zakup waluty za PLN po `kurs_sprzedazy` kantoru, a `SPRZEDAZ` oznacza sprzedaż waluty i otrzymanie PLN po `kurs_zakupu` kantoru.
@@ -52,6 +55,7 @@ Błąd pobierania z NBP zwraca `502`, przekroczenie czasu oczekiwania — `504`,
 
 Błędy walidacji i komunikaty procedur (`P0001`) zwracają `400`, nieistniejące konto przy odczycie lub doładowaniu — `404`, zajęty login (`23505`) — `409` z komunikatem `Ten login jest już zajęty.`, a utworzenie konta — `201`.
 Pozostałe błędy PostgreSQL obsługiwane przy dodawaniu konta, doładowaniu, przelewie i przewalutowaniu zwracają `500` z komunikatem `Błąd bazy danych.`.
+Alerty kursowe: typ jak przy przewalutowaniu. `ZAKUP` jest spełniony, gdy `kurs_sprzedazy <= prog`, a `SPRZEDAZ`, gdy `kurs_zakupu >= prog`. Spełnienie ustawia trigger w bazie przy każdej zmianie `aktualne_kursy_walut` (`/kursy`, przewalutowanie, odświeżanie w tle), a jeśli warunek jest spełniony już przy tworzeniu, alert od razu ma `spelniono`. Alert spełnia się tylko raz. `aktualnyKurs` to bieżący kurs odpowiedni dla typu (`null`, gdy kursu jeszcze nie pobrano).
 W `/transakcje` pole `rodzaj` to `PRZELEW_WYCHODZACY`, `PRZELEW_PRZYCHODZACY`, `ZAKUP`, `SPRZEDAZ` albo `DOLADOWANIE`. `kwota` to kwota w `walutaZrodlowa`, a `kwotaDocelowa` (tylko wymiany) to kwota w `walutaDocelowa`. `kurs` jest `null` poza wymianami, `kontrahent` (imię i nazwisko drugiej strony) tylko przy przelewach. `id` jest unikalne w obrębie rodzaju.
 
 Hasło nowego użytkownika jest zapisywane jako hash ASP.NET Core Identity i nie jest zwracane w odpowiedziach.
@@ -65,6 +69,7 @@ Rejestracja: login 3–100 znaków `[a-zA-Z0-9._-]`, hasło min. 8 znaków, imi�
 tests/Kantor.Api.Tests/   xUnit
   KwotaValidatorTests.cs  walidacja kwot (przypadki brzegowe)
   ProceduryTests.cs       procedury przelew i przewalutowanie na prawdziwej bazie
+  AlertyTests.cs          triggery alertów kursowych na prawdziwej bazie
 ```
 
 ```bash
