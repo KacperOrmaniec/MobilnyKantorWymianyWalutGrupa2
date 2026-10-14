@@ -52,7 +52,7 @@ W nawiasie odpowiednik w `.backlog/tasks.yaml`, jeśli istnieje.
 - Dodać profil w `launchSettings.json` z `http://0.0.0.0:5171`. Opisać w README, że emulator Androida używa `10.0.2.2`, a telefon IP komputera w tej samej sieci Wi-Fi.
 - **AC:** zespół mobile woła `GET /test` z telefonu i dostaje `200`.
 
-### B06. Spisana polityka kursów (task_001)
+### ✅ B06. Spisana polityka kursów (task_001): zrobione, `docs/POLITYKA_KURSOW.md`
 - Kod już działa wg tej polityki, brakuje opisu do raportu: tabela C, `ZAKUP` po `ask`, `SPRZEDAZ` po `bid`, PLN jako waluta rozliczeniowa. Kurs jest odświeżany przed każdą wymianą, a gdy NBP nie odpowiada, wymiana nie jest wykonywana (`502`/`504`). W weekend NBP zwraca ostatnią opublikowaną tabelę.
 - **AC:** sekcja w `docs/` gotowa do wklejenia do raportu. Task_001 zamknięty.
 
