@@ -79,7 +79,7 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
 
 
 
-    // Dodaje podaną kwotę do salda PLN użytkownika.
+    // Doładowuje saldo PLN przez procedurę doladowanie (zapisuje też historię).
     [HttpPost("{id:long}/doladowanie")]
     public async Task<IActionResult> DoladujKonto(long id, [FromBody] DoladujSaldo request)
     {
@@ -88,17 +88,17 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
 
         try
         {
-            await db.Database.ExecuteSqlInterpolatedAsync($"""
-                INSERT INTO public.salda AS s (id_konta, waluta, saldo)
-                VALUES ({id}, 'PLN', {request.Kwota})
-                ON CONFLICT ON CONSTRAINT salda_pkey DO UPDATE SET saldo = s.saldo + EXCLUDED.saldo
-                """);
+            await db.Database.ExecuteSqlInterpolatedAsync($"CALL public.doladowanie({id}, {request.Kwota})");
 
             return Ok(new { message = "Saldo PLN zostało doładowane." });
         }
-        catch (PostgresException ex) when (ex.SqlState == "23503")
+        catch (PostgresException ex) when (ex.SqlState == "P0001" && ex.MessageText == "Konto nie istnieje")
         {
             return NotFound(new { error = "Konto nie istnieje." });
+        }
+        catch (PostgresException ex) when (ex.SqlState == "P0001")
+        {
+            return BadRequest(new { error = ex.MessageText });
         }
         catch (PostgresException)
         {

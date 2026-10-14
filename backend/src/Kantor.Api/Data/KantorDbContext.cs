@@ -14,6 +14,8 @@ public partial class KantorDbContext : DbContext
 
     public virtual DbSet<AktualneKursyWalut> AktualneKursyWaluts { get; set; }
 
+    public virtual DbSet<HistoriaDoladowan> HistoriaDoladowans { get; set; }
+
     public virtual DbSet<HistoriaPrzelewów> HistoriaPrzelewóws { get; set; }
 
     public virtual DbSet<HistoriaPrzewalutowanium> HistoriaPrzewalutowania { get; set; }
@@ -49,6 +51,26 @@ public partial class KantorDbContext : DbContext
             entity.Property(e => e.Waluta)
                 .HasMaxLength(10)
                 .HasColumnName("waluta");
+        });
+
+        modelBuilder.Entity<HistoriaDoladowan>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("historia_doladowan_pkey");
+
+            entity.ToTable("historia_doladowan");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.IdKonta).HasColumnName("id_konta");
+            entity.Property(e => e.Kwota).HasPrecision(18, 2);
+            entity.Property(e => e.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.Waluta).HasMaxLength(10);
+
+            entity.HasOne(d => d.IdKontaNavigation).WithMany(p => p.HistoriaDoladowans)
+                .HasForeignKey(d => d.IdKonta)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("historia_doladowan_id_konta_fkey");
         });
 
         modelBuilder.Entity<HistoriaPrzelewów>(entity =>

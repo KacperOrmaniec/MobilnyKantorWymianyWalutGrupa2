@@ -30,9 +30,10 @@ Endpointy można testować w Postmanie. Konfiguracja bazy i User Secrets jest op
 |---|---|---|
 | GET | `/konta/{id}/saldo` | Salda we wszystkich walutach: `{ id, salda: [{ waluta, nazwa, saldo }] }`, PLN pierwszy, brak środków = `0`. |
 | POST | `/konta` | Dodanie użytkownika z zerowymi saldami: `login`, `haslo`, `imie`, `nazwisko`. |
-| POST | `/konta/{id}/doladowanie` | Dodanie `kwota` do salda PLN. |
+| POST | `/konta/{id}/doladowanie` | Procedura `doladowanie`: dodaje `kwota` do salda PLN i zapisuje wpis w `historia_doladowan`. |
 | GET | `/konta/{id}/historia-przelewow` | Przelewy wysłane i odebrane, od najnowszych, z polami `nazwaNadawcy` i `nazwaOdbiorcy` (imię i nazwisko). |
 | GET | `/konta/{id}/historia-przewalutowania` | Przewalutowania, od najnowszych. |
+| GET | `/konta/{id}/transakcje` | Wspólna historia (przelewy, przewalutowania, doładowania), od najnowszych. Pola: `id`, `rodzaj`, `walutaZrodlowa`, `walutaDocelowa`, `kwota`, `kwotaDocelowa`, `kurs`, `data`, `kontrahent`. |
 | GET | `/kursy` | Odświeża wszystkie waluty z `waluty` z tabeli C NBP i zwraca aktualne kursy z bazy. |
 | GET | `/kursy/historyczne` | Uzupełnia ostatnie 7 dni z tabeli A NBP i zwraca całą historię z bazy. |
 | POST | `/przelewy` | Procedura `przelew`: `idNadawcy`, `idOdbiorcy`, `kwota`, `waluta` (dowolna z tabeli `waluty`). |
@@ -48,6 +49,8 @@ Błąd pobierania z NBP zwraca `502`, przekroczenie czasu oczekiwania — `504`,
 
 Błędy walidacji i komunikaty procedur (`P0001`) zwracają `400`, nieistniejące konto przy odczycie lub doładowaniu — `404`, zajęty login (`23505`) — `409` z komunikatem `Ten login jest już zajęty.`, a utworzenie konta — `201`.
 Pozostałe błędy PostgreSQL obsługiwane przy dodawaniu konta, doładowaniu, przelewie i przewalutowaniu zwracają `500` z komunikatem `Błąd bazy danych.`.
+W `/transakcje` pole `rodzaj` to `PRZELEW_WYCHODZACY`, `PRZELEW_PRZYCHODZACY`, `ZAKUP`, `SPRZEDAZ` albo `DOLADOWANIE`. `kwota` to kwota w `walutaZrodlowa`, a `kwotaDocelowa` (tylko wymiany) to kwota w `walutaDocelowa`. `kurs` jest `null` poza wymianami, `kontrahent` (imię i nazwisko drugiej strony) tylko przy przelewach. `id` jest unikalne w obrębie rodzaju.
+
 Hasło nowego użytkownika jest zapisywane jako hash ASP.NET Core Identity i nie jest zwracane w odpowiedziach.
 Endpointy na tym etapie nie mają uwierzytelniania: konto wskazuje się przez ID.
 

@@ -155,6 +155,21 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "Wspólna historia transakcji",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5171/konta/1/transakcje",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5171",
+          "path": ["konta", "1", "transakcje"]
+        }
+      },
+      "response": []
     }
   ]
 }

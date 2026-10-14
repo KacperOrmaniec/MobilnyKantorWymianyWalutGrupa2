@@ -129,15 +129,18 @@ UWAGA!!! Aktualnie JWT logowanie nie zostało zaimplementowane!!!
 | GET    | `/testdb`                              | Sprawdza połączenie z bazą.                    | —                                                                      |
 | GET    | `/konta/{id}/saldo`                    | Pobiera salda we wszystkich walutach.          | —                                                                      |
 | POST   | `/konta`                               | Dodaje użytkownika.                            | `{"login":"jan","haslo":"test123","imie":"Jan","nazwisko":"Kowalski"}` |
-| POST   | `/konta/{id}/doladowanie`              | Doładowuje saldo PLN.                          | `{"kwota":100}`                                                        |
+| POST   | `/konta/{id}/doladowanie`              | Doładowuje saldo PLN i zapisuje historię.      | `{"kwota":100}`                                                        |
 | GET    | `/konta/{id}/historia-przelewow`       | Pobiera przelewy z nazwami nadawcy i odbiorcy. | —                                                                      |
 | GET    | `/konta/{id}/historia-przewalutowania` | Pobiera historię wymiany walut.                | —                                                                      |
+| GET    | `/konta/{id}/transakcje`               | Wspólna historia: przelewy, wymiany, doładowania. | —                                                                   |
 | GET    | `/kursy`                               | Odświeża kursy walut z NBP i zwraca je z bazy. | —                                                                      |
 | GET    | `/kursy/historyczne`                   | Uzupełnia ostatnie 7 dni NBP i zwraca historię z bazy. | —                                                               |
 | POST   | `/przelewy`                            | Wykonuje przelew.                              | `{"idNadawcy":1,"idOdbiorcy":2,"kwota":50,"waluta":"PLN"}`             |
 | POST   | `/konta/{id}/przewalutowanie`          | Wymienia PLN na walutę obcą lub odwrotnie.     | `{"waluta":"EUR","kwota":10,"typTransakcji":"ZAKUP"}`                  |
 
 Obsługiwane waluty są w tabeli `waluty` (PLN, EUR, USD, CHF, GBP). Przelew obsługuje każdą z nich. Przy przewalutowaniu `kwota` oznacza ilość waluty obcej: `ZAKUP` kupuje walutę za PLN, a `SPRZEDAZ` sprzedaje ją za PLN. Kwoty muszą być dodatnie i mieć najwyżej 2 miejsca po przecinku.
+
+Konta testowe z seeda: `test` i `test2`, hasło `test123` (w bazie zapisany jest tylko hash).
 
 ## Podejście Database First
 
@@ -156,6 +159,7 @@ Definicje znajdują się w [backend/database/schema.sql](backend/database/schema
 | `salda`                    | Saldo konta w danej walucie; brak wiersza oznacza saldo 0.        |
 | `historia_przelewów`       | Przelewy między kontami: nadawcę, odbiorcę, kwotę, walutę i datę. |
 | `historia_przewalutowania` | Wymiany walut: konto, waluty, kwoty, zastosowany kurs i datę.     |
+| `historia_doladowan`       | Doładowania konta: konto, kwotę, walutę (PLN) i datę.             |
 | `aktualne_kursy_walut`     | Bieżące kursy kupna i sprzedaży oraz czas aktualizacji.           |
 | `historyczne_kursy_walut`  | Średnie kursy walut dla poszczególnych dni.                       |
 
@@ -165,9 +169,10 @@ Definicje znajdują się w [backend/database/schema.sql](backend/database/schema
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `przelew`                       | Przenosi środki między dwoma kontami w dowolnej walucie z `waluty` i zapisuje historię. Sprawdza poprawność danych i dostępne saldo. |
 | `przewalutowanie`               | Wymienia PLN na walutę obcą lub odwrotnie, aktualizuje salda i zapisuje historię wraz z kursem.                               |
+| `doladowanie`                   | Dodaje kwotę do salda PLN konta i zapisuje wpis w `historia_doladowan`.                                                   |
 | `zmiana_aktualnego_kursu_walut` | Dodaje lub aktualizuje kurs kupna i sprzedaży podanej waluty oraz zwraca czas aktualizacji.                               |
 
-Procedury `przelew` i `przewalutowanie` blokują konta przez `FOR UPDATE` i zatwierdzają zmiany sald oraz zapis historii razem albo wcale — błąd zapisu historii powoduje wycofanie zmian sald.
+Procedury `przelew`, `przewalutowanie` i `doladowanie` blokują konta przez `FOR UPDATE` i zatwierdzają zmiany sald oraz zapis historii razem albo wcale — błąd zapisu historii powoduje wycofanie zmian sald.
 
 W procedurze `przewalutowanie` typ operacji jest opisany z perspektywy użytkownika:
 `ZAKUP` oznacza, że klient płaci PLN i otrzymuje walutę obcą po kursie sprzedaży kantoru,
