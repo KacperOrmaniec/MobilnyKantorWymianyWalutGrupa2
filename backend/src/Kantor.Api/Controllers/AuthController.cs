@@ -43,10 +43,6 @@ public class AuthController(KantorDbContext db, IConfiguration config) : Control
         {
             return Conflict(new { error = "Ten login jest już zajęty." });
         }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException)
-        {
-            return StatusCode(500, new { error = "Błąd bazy danych." });
-        }
 
         return Created("/konta/me", new { konto.Id, konto.Login, konto.Imie, konto.Nazwisko });
     }

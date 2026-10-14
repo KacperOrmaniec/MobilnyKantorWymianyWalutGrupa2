@@ -1,6 +1,5 @@
 using Kantor.Api.Models;
 using Kantor.Api.Validation;
-using Npgsql;
 using Kantor.Api.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,19 +31,8 @@ public class PrzelewyController(KantorDbContext db) : ControllerBase
         if (idOdbiorcy == idNadawcy)
             return BadRequest(new { error = "Nie można wykonać przelewu do siebie." });
 
-        try
-        {
-            await db.Database.ExecuteSqlInterpolatedAsync(
-                $"CALL public.przelew({idNadawcy}, {idOdbiorcy}, {request.Kwota}, {waluta}::varchar)");
-            return Ok(new { message = "Przelew wykonany." });
-        }
-        catch (PostgresException ex) when (ex.SqlState == "P0001")
-        {
-            return BadRequest(new { error = ex.MessageText });
-        }
-        catch (PostgresException)
-        {
-            return StatusCode(500, new { error = "Błąd bazy danych." });
-        }
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"CALL public.przelew({idNadawcy}, {idOdbiorcy}, {request.Kwota}, {waluta}::varchar)");
+        return Ok(new { message = "Przelew wykonany." });
     }
 }

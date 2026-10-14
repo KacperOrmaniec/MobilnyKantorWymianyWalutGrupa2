@@ -1,6 +1,5 @@
 ﻿using Kantor.Api.Models;
 using Kantor.Api.Services;
-using System.Text.Json;
 using Kantor.Api.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Npgsql;
@@ -66,21 +65,13 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
         try
         {
             await db.Database.ExecuteSqlInterpolatedAsync($"CALL public.doladowanie({id}, {request.Kwota})");
-
-            return Ok(new { message = "Saldo PLN zostało doładowane." });
         }
         catch (PostgresException ex) when (ex.SqlState == "P0001" && ex.MessageText == "Konto nie istnieje")
         {
             return NotFound(new { error = "Konto nie istnieje." });
         }
-        catch (PostgresException ex) when (ex.SqlState == "P0001")
-        {
-            return BadRequest(new { error = ex.MessageText });
-        }
-        catch (PostgresException)
-        {
-            return StatusCode(500, new { error = "Błąd bazy danych." });
-        }
+
+        return Ok(new { message = "Saldo PLN zostało doładowane." });
     }
 
 
@@ -163,32 +154,13 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
             return BadRequest(new { error = "Podaj typ przewalutowania ZAKUP lub SPRZEDAZ" });
         }
 
-        try
-        {
-            // Najpierw zapisuje najnowsze kursy, dopiero potem wykonuje wymianę.
-            await nbp.AktualizujAktualneKursy(cancellationToken);
+        // Najpierw zapisuje najnowsze kursy, dopiero potem wykonuje wymianę (błąd NBP przerywa: 502/504 globalnie).
+        await nbp.AktualizujAktualneKursy(cancellationToken);
 
-            // Kwota oznacza ilość waluty obcej. ZAKUP i SPRZEDAZ są z perspektywy użytkownika.
-            await db.Database.ExecuteSqlInterpolatedAsync(
-                $"CALL public.przewalutowanie({id}, {waluta}::varchar, {request.Kwota}, {typ}::varchar)",
-                cancellationToken);
-            return Ok(new { message = "Przewalutowanie wykonane." });
-        }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException)
-        {
-            return StatusCode(502, new { error = "Nie udało się pobrać kursów z NBP. Przewalutowanie nie zostało wykonane." });
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return StatusCode(504, new { error = "Przekroczono czas oczekiwania na NBP. Przewalutowanie nie zostało wykonane." });
-        }
-        catch (PostgresException ex) when (ex.SqlState == "P0001")
-        {
-            return BadRequest(new { error = ex.MessageText });
-        }
-        catch (PostgresException)
-        {
-            return StatusCode(500, new { error = "Błąd bazy danych." });
-        }
+        // Kwota oznacza ilość waluty obcej. ZAKUP i SPRZEDAZ są z perspektywy użytkownika.
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"CALL public.przewalutowanie({id}, {waluta}::varchar, {request.Kwota}, {typ}::varchar)",
+            cancellationToken);
+        return Ok(new { message = "Przewalutowanie wykonane." });
     }
 }

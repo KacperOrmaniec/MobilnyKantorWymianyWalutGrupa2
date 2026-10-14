@@ -6,7 +6,9 @@ public class OdswiezanieKursow(IServiceScopeFactory scopeFactory, IConfiguration
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(config.GetValue("Kursy:OdswiezanieMinuty", 15)));
+        // Wartość <= 0 wywaliłaby PeriodicTimer (i całą aplikację), więc wtedy domyślne 15.
+        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(
+            config.GetValue("Kursy:OdswiezanieMinuty", 15) is > 0 and var minuty ? minuty : 15));
         do
         {
             try
