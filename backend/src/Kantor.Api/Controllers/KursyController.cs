@@ -46,15 +46,43 @@ public class KursyController(KantorDbContext db, NbpService nbp) : ControllerBas
         }
     }
 
-    // Uzupełnia ostatnie 7 dni kursów średnich NBP i zwraca zapisaną historię.
+    // Uzupełnia kursy średnie NBP z zakresu dat (domyślnie ostatnie 7 dni) i zwraca je rosnąco po dacie.
     [HttpGet("historyczne")]
-    public async Task<IActionResult> PobierzHistoryczneKursy(CancellationToken cancellationToken)
+    public async Task<IActionResult> PobierzHistoryczneKursy(
+        [FromQuery] string? waluta,
+        [FromQuery] string? od,
+        [FromQuery(Name = "do")] string? doParam,
+        CancellationToken cancellationToken)
     {
+        if (!SprobujData(od, out var odDaty) || !SprobujData(doParam, out var doDaty))
+            return BadRequest(new { error = "Daty podaj w formacie RRRR-MM-DD." });
+
+        var dzis = NbpService.DzisWPolsce();
+        var koniec = doDaty ?? dzis;
+        var poczatek = odDaty ?? koniec.AddDays(-6);
+
+        if (poczatek > koniec)
+            return BadRequest(new { error = "Data 'od' nie może być późniejsza niż 'do'." });
+        if (koniec.DayNumber - poczatek.DayNumber + 1 > 93)
+            return BadRequest(new { error = "Zakres dat może mieć najwyżej 93 dni." });
+        if (koniec > dzis)
+            return BadRequest(new { error = "Data 'do' nie może być w przyszłości." });
+
         try
         {
-            await nbp.AktualizujHistoryczneKursy(cancellationToken);
+            var waluty = await nbp.PobierzWaluty(cancellationToken);
+            if (waluta is not null)
+            {
+                var kod = waluta.Trim().ToUpperInvariant();
+                if (!waluty.Contains(kod))
+                    return BadRequest(new { error = "Nieobsługiwana waluta." });
+                waluty = [kod];
+            }
+
+            await nbp.AktualizujHistoryczneKursy(waluty, poczatek, koniec, cancellationToken);
             var historia = await db.HistoryczneKursyWaluts.AsNoTracking()
-                .OrderByDescending(k => k.Data).ThenBy(k => k.Waluta)
+                .Where(k => waluty.Contains(k.Waluta) && k.Data >= poczatek && k.Data <= koniec)
+                .OrderBy(k => k.Data).ThenBy(k => k.Waluta)
                 .ToListAsync(cancellationToken);
 
             return Ok(historia);
@@ -71,5 +99,15 @@ public class KursyController(KantorDbContext db, NbpService nbp) : ControllerBas
         {
             return StatusCode(500, new { error = "Błąd bazy danych." });
         }
+    }
+
+    // Parsuje opcjonalną datę RRRR-MM-DD; brak parametru jest poprawny.
+    private static bool SprobujData(string? tekst, out DateOnly? data)
+    {
+        data = null;
+        if (string.IsNullOrWhiteSpace(tekst)) return true;
+        if (!DateOnly.TryParseExact(tekst, "yyyy-MM-dd", out var wynik)) return false;
+        data = wynik;
+        return true;
     }
 }

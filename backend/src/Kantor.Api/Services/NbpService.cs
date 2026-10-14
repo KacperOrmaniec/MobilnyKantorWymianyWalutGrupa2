@@ -7,8 +7,12 @@ namespace Kantor.Api.Services;
 
 public class NbpService(HttpClient client, KantorDbContext db)
 {
+    // Dzisiejsza data według czasu w Polsce (NBP publikuje kursy w polskim czasie).
+    public static DateOnly DzisWPolsce() =>
+        DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTimeOffset.UtcNow, "Europe/Warsaw").DateTime);
+
     // Waluty obce z tabeli waluty (PLN jest walutą rozliczeniową, NBP go nie notuje).
-    private Task<List<string>> PobierzWaluty(CancellationToken cancellationToken) =>
+    public Task<List<string>> PobierzWaluty(CancellationToken cancellationToken) =>
         db.Waluty.Where(w => w.Kod != "PLN").Select(w => w.Kod).ToListAsync(cancellationToken);
 
     // Pobiera wszystkie kursy przed zapisem, żeby błąd NBP nie zostawił połowy aktualizacji.
@@ -35,13 +39,10 @@ public class NbpService(HttpClient client, KantorDbContext db)
         await transaction.CommitAsync(cancellationToken);
     }
 
-    // Uzupełnia kursy średnie z ostatnich 7 dni, bez duplikowania waluty i daty.
-    public async Task AktualizujHistoryczneKursy(CancellationToken cancellationToken)
+    // Uzupełnia kursy średnie podanych walut z zakresu dat (max 93 dni), bez duplikowania waluty i daty.
+    public async Task AktualizujHistoryczneKursy(IEnumerable<string> waluty, DateOnly odDaty, DateOnly doDaty,
+        CancellationToken cancellationToken)
     {
-        var czasPolski = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTimeOffset.UtcNow, "Europe/Warsaw");
-        var doDaty = DateOnly.FromDateTime(czasPolski.DateTime);
-        var odDaty = doDaty.AddDays(-6);
-        var waluty = await PobierzWaluty(cancellationToken);
         var odpowiedzi = await Task.WhenAll(waluty.Select(waluta =>
             PobierzKursy($"exchangerates/rates/A/{waluta}/{odDaty:yyyy-MM-dd}/{doDaty:yyyy-MM-dd}/?format=json",
                 waluta, "A", cancellationToken, brakDanychDozwolony: true)));
