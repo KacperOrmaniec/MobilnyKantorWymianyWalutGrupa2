@@ -9,7 +9,7 @@ W nawiasie odpowiednik w `.backlog/tasks.yaml`, jeśli istnieje.
 | Wymaganie | Stan |
 |---|---|
 | Logika kantoru po stronie serwera | ✅ procedury `przelew`, `przewalutowanie` |
-| Integracja z NBP (aktualne) | ✅ tabela C, bid/ask, odświeżane przy `/kursy` i przed każdą wymianą |
+| Integracja z NBP (aktualne) | ✅ tabela C, bid/ask, odświeżane w tle co 15 min i przed każdą wymianą |
 | Kursy archiwalne | ⚠️ tylko ostatnie 7 dni, bez parametrów |
 | Spójność wymiany i sald | ✅ `FOR UPDATE` i jedna transakcja w procedurze |
 | Kurs zapisany w transakcji | ✅ `historia_przewalutowania.Kurs_przewalutowania` |
@@ -114,8 +114,9 @@ W nawiasie odpowiednik w `.backlog/tasks.yaml`, jeśli istnieje.
 ### B17. Alerty kursowe
 - Tabela `alerty` (id_konta, waluta, próg, kierunek). `BackgroundService` sprawdza kursy co X minut, a mobile dostaje listę alertów, które się spełniły.
 
-### B18. Odświeżanie kursów w tle
+### ✅ B18. Odświeżanie kursów w tle: zrobione
 - `BackgroundService` co np. 15 min, a `GET /kursy` czyta tylko z bazy. Gdy NBP leży, mobile i tak dostaje ostatni kurs z datą aktualizacji (tryb „offline” dla kursów).
+- Zrobione: `Services/OdswiezanieKursow.cs` (od razu po starcie, potem co `Kursy:OdswiezanieMinuty`, domyślnie 15). `/kursy` pyta NBP tylko przy pustej tabeli albo `?odswiez=true`. Przewalutowanie bez zmian (zawsze świeży kurs z NBP). Adres NBP w `Nbp:Adres`.
 
 ---
 

@@ -188,7 +188,7 @@ Konto zawsze wynika z tokena (`/konta/me/...`), więc użytkownik ma dostęp tyl
 | GET | `/konta/me/historia-przelewow` | tak | Pobiera przelewy z nazwami nadawcy i odbiorcy. | — |
 | GET | `/konta/me/historia-przewalutowania` | tak | Pobiera historię wymiany walut. | — |
 | GET | `/konta/me/transakcje` | tak | Wspólna historia: przelewy, wymiany, doładowania. | — |
-| GET | `/kursy` | — | Odświeża kursy walut z NBP i zwraca je z bazy. | — |
+| GET | `/kursy?odswiez=true` | — | Zwraca ostatnie kursy z bazy (odświeżane w tle co 15 min, działa też przy awarii NBP). `odswiez=true` (opcjonalne) wymusza pobranie z NBP. | — |
 | GET | `/kursy/historyczne?waluta=EUR&od=2026-09-01&do=2026-10-14` | — | Kursy średnie NBP z zakresu dat (parametry opcjonalne, domyślnie ostatnie 7 dni i wszystkie waluty), rosnąco po dacie. | — |
 | POST | `/przelewy` | tak | Wykonuje przelew z konta zalogowanego do konta o podanym loginie. | `{"loginOdbiorcy":"anna","kwota":50,"waluta":"PLN"}` |
 | POST | `/konta/me/przewalutowanie` | tak | Wymienia PLN na walutę obcą lub odwrotnie. | `{"waluta":"EUR","kwota":10,"typTransakcji":"ZAKUP"}` |

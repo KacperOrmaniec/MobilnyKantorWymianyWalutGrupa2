@@ -36,7 +36,7 @@ Endpointy można testować w Postmanie. Konfiguracja bazy i User Secrets jest op
 | GET | `/konta/me/historia-przelewow` | Przelewy wysłane i odebrane, od najnowszych, z polami `nazwaNadawcy` i `nazwaOdbiorcy` (imię i nazwisko). |
 | GET | `/konta/me/historia-przewalutowania` | Przewalutowania, od najnowszych. |
 | GET | `/konta/me/transakcje` | Wspólna historia (przelewy, przewalutowania, doładowania), od najnowszych. Pola: `id`, `rodzaj`, `walutaZrodlowa`, `walutaDocelowa`, `kwota`, `kwotaDocelowa`, `kurs`, `data`, `kontrahent`. |
-| GET | `/kursy` | Odświeża wszystkie waluty z `waluty` z tabeli C NBP i zwraca aktualne kursy z bazy. |
+| GET | `/kursy?odswiez=true` | Zwraca ostatnie kursy z bazy (bez NBP). NBP jest pytane tylko przy pustej tabeli kursów albo przy `odswiez=true` (opcjonalne). |
 | GET | `/kursy/historyczne?waluta=&od=&do=` | Kursy średnie z tabeli A NBP dla zakresu dat, rosnąco po dacie (pod wykres). Parametry opcjonalne. |
 | POST | `/przelewy` | Procedura `przelew`: nadawca z tokena, `loginOdbiorcy`, `kwota`, `waluta` (dowolna z tabeli `waluty`). Nieznany odbiorca → `404`, przelew do siebie → `400`. |
 | POST | `/konta/me/przewalutowanie` | Procedura `przewalutowanie`: `waluta` (z tabeli `waluty`, bez PLN), `kwota`, `typTransakcji`. |
@@ -44,6 +44,7 @@ Endpointy można testować w Postmanie. Konfiguracja bazy i User Secrets jest op
 Kwoty muszą być dodatnie i mieć najwyżej dwa miejsca po przecinku.
 Przy przewalutowaniu `kwota` zawsze oznacza ilość waluty obcej. Typ transakcji jest z perspektywy użytkownika: `ZAKUP` oznacza zakup waluty za PLN po `kurs_sprzedazy` kantoru, a `SPRZEDAZ` oznacza sprzedaż waluty i otrzymanie PLN po `kurs_zakupu` kantoru.
 Przed każdym przewalutowaniem backend automatycznie pobiera i zapisuje najnowsze kursy wszystkich walut z NBP, a następnie wywołuje procedurę wymiany. Jeśli pobranie kursów się nie uda, przewalutowanie nie zostanie wykonane. Nie trzeba wcześniej wywoływać `/kursy`.
+Kursy z tabeli C odświeża w tle `Services/OdswiezanieKursow.cs`: od razu po starcie, potem co `Kursy:OdswiezanieMinuty` minut (domyślnie 15, `appsettings.json`). Błąd NBP jest logowany jako warning, a `/kursy` dalej zwraca ostatnie kursy z bazy; pole `timestamp` to czas ich aktualizacji. Adres API NBP można zmienić przez `Nbp:Adres` (domyślnie `https://api.nbp.pl/api/`).
 W odpowiedzi `/kursy` pola `kursZakupuPrzezKantor` i `kursSprzedazyPrzezKantor` oznaczają odpowiednio kurs, po którym kantor kupuje walutę od użytkownika, i kurs, po którym sprzedaje ją użytkownikowi.
 
 `/kursy/historyczne` przyjmuje opcjonalne parametry: `waluta` (kod z tabeli `waluty`, bez PLN; brak = wszystkie waluty), `od` i `do` (format `RRRR-MM-DD`). Bez dat zwraca ostatnie 7 dni (dziś minus 6 dni do dziś, według czasu w Polsce); samo `od` oznacza zakres do dziś, samo `do` — 7 dni kończące się tą datą. Walidacja (`400` z `{ error }`): poprawny format dat, `od <= do`, zakres najwyżej 93 dni (limit NBP), `do` nie w przyszłości, obsługiwana waluta. Przykład: `GET /kursy/historyczne?waluta=EUR&od=2026-09-01&do=2026-10-14`.
