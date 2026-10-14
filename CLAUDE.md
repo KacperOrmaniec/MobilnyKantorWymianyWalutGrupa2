@@ -12,14 +12,17 @@ Mobile currency-exchange system (university group project, Polish). Spec: [requi
 ## Commands
 
 ```bash
-docker compose up -d                                   # DB (needs .env from .env.example)
+docker compose up -d db pgadmin                        # dev: DB only, API from VS (needs .env from .env.example)
+docker compose up -d --build                           # everything incl. API in Docker on :5171 (needs JWT_KEY in .env)
 cd backend && dotnet build Kantor.slnx
 dotnet run --project backend/src/Kantor.Api            # API; OpenAPI at /openapi/v1.json in Development
+dotnet run --project backend/src/Kantor.Api --launch-profile http-siec   # API on 0.0.0.0:5171 (phone/emulator)
+cd backend && dotnet test Kantor.slnx                  # tests; DB tests skipped unless KANTOR_TEST_DB is set
 cd mobile && npm install && npx expo start             # mobile app
 backlog task list | backlog serve --no-open            # tasks (on Windows `backlog board` crashes)
 ```
 
-No tests exist yet (task_020). New .NET projects go into `src/` or `tests/` and are added with `dotnet sln Kantor.slnx add <csproj>`.
+Tests: `backend/tests/Kantor.Api.Tests` (xUnit). `KwotaValidator` unit tests always run. Procedure tests (`ProceduryTests`, Npgsql, each test in a rolled-back transaction) need `KANTOR_TEST_DB` (Npgsql connection string to a DB with `schema.sql` applied), otherwise they are skipped via `[BazaFact]`. New .NET projects go into `src/` or `tests/` and are added with `dotnet sln Kantor.slnx add <csproj>`.
 
 ## Architecture and conventions
 
@@ -46,6 +49,8 @@ No tests exist yet (task_020). New .NET projects go into `src/` or `tests/` and 
 - Mobile is template + tab layout only (`index`, `profile`, `exchange` screens WIP). There is no API client yet. `app.json` references `./assets/...` images, but `mobile/assets/` is not in the repo.
 - Backlog statuses in `.backlog/tasks.yaml` lag behind the code: most backend tasks still show `backlog` even though they are implemented.
 - Postman collections are in `postman/`.
+- Compose services have no `container_name` (containers are `<project>-db-1` etc.), so several stacks can run with `-p <name>`. The `api` container runs in Production (no OpenAPI) and listens on 8080 → host `${API_PORT:-5171}`. The compose file requires `JWT_KEY` in `.env` even when only `db` is started.
+- `GET /kursy/historyczne` re-fetches the whole requested range from NBP on every call (no "only missing days" logic yet).
 
 ## Workflow
 
