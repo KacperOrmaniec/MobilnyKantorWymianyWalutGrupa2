@@ -50,13 +50,24 @@ postman/        kolekcje requestów (backend, NBP)
 
 ## Szybki start: uruchomienie i test w Postmanie
 
-Najkrótsza droga, żeby zobaczyć działający backend (bez Visual Studio):
+Całą lokalną konfigurację robi skrypt [setup.ps1](setup.ps1) (Docker Desktop musi być uruchomiony):
 
 ```powershell
-copy .env.example .env          # potem ustaw własne hasła i JWT_KEY (szczegóły niżej)
-docker compose up -d --build    # baza + pgAdmin + API, pierwszy build ok. 1–2 min
-docker compose ps               # db: healthy, api: running
+.\setup.ps1 -Api      # zespół mobile / testy: baza + pgAdmin + API w Dockerze
+.\setup.ps1           # backend: baza + pgAdmin w Dockerze, API uruchamiasz z Visual Studio
+.\setup.ps1 -Reset    # wyczyść bazę (np. po zmianie struktury tabel) i wylosuj nowe hasła
 ```
+
+Jeśli Windows blokuje uruchamianie skryptów: `powershell -ExecutionPolicy Bypass -File .\setup.ps1 -Api`.
+
+Skrypt:
+
+- tworzy `.env` z `.env.example` i losuje hasła oraz `JWT_KEY`, a w istniejącym `.env` tylko dopisuje brakujący `JWT_KEY`;
+- ustawia User Secrets (`ConnectionStrings:KantorDb`, `Jwt:Key`) z tych samych wartości, jeśli jest zainstalowany .NET SDK;
+- uruchamia kontenery i czeka, aż baza będzie gotowa;
+- ostrzega, gdy baza ma starą strukturę i trzeba raz uruchomić `-Reset`.
+
+Można go uruchamiać wielokrotnie: bez `-Reset` nie zmienia haseł ani danych. Pierwsze uruchomienie z `-Api` trwa 1–2 minuty (pobieranie obrazów i build).
 
 Sprawdzenie: [http://localhost:5171/testdb](http://localhost:5171/testdb) powinno zwrócić `{"connected":true}`.
 
@@ -74,6 +85,8 @@ Następnie zaimportuj do Postmana kolekcje `kolekcja_backend_konta`, `kolekcja_b
 `docker compose down` zatrzymuje kontenery (dane zostają w wolumenach).
 
 ## Konfiguracja lokalnego środowiska
+
+Kroki 1, 2 i 4 robi automatycznie `setup.ps1` (patrz wyżej). Poniżej opis ręczny.
 
 ### 1. Uruchomienie bazy danych
 
@@ -185,7 +198,7 @@ Istniejące tabele i dane pozostają bez zmian. Skrypt nie dodaje kolumn do
 istniejących tabel.
 
 **Zmiana struktury tabel** (np. przejście sald na tabelę `salda`) wymaga jednorazowego
-wyczyszczenia bazy: `docker compose down -v`, potem `docker compose up -d db pgadmin`.
+wyczyszczenia bazy: `.\setup.ps1 -Reset` (albo ręcznie `docker compose down -v`, potem `docker compose up -d db pgadmin`).
 
 ### Dodanie nowej waluty
 

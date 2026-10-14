@@ -12,6 +12,7 @@ Mobile currency-exchange system (university group project, Polish). Spec: [requi
 ## Commands
 
 ```bash
+.\setup.ps1 [-Api] [-Reset]                            # one-shot local setup: .env + random secrets, User Secrets, containers (idempotent)
 docker compose up -d db pgadmin                        # dev: DB only, API from VS (needs .env from .env.example)
 docker compose up -d --build                           # everything incl. API in Docker on :5171 (needs JWT_KEY in .env)
 cd backend && dotnet build Kantor.slnx
