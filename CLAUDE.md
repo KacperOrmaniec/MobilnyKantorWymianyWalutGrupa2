@@ -22,14 +22,14 @@ cd mobile && npm install && npx expo start             # mobile app
 backlog task list | backlog serve --no-open            # tasks (on Windows `backlog board` crashes)
 ```
 
-Tests: `backend/tests/Kantor.Api.Tests` (xUnit). `KwotaValidator` unit tests always run. Procedure tests (`ProceduryTests`, Npgsql, each test in a rolled-back transaction) need `KANTOR_TEST_DB` (Npgsql connection string to a DB with `schema.sql` applied), otherwise they are skipped via `[BazaFact]`. New .NET projects go into `src/` or `tests/` and are added with `dotnet sln Kantor.slnx add <csproj>`.
+Tests: `backend/tests/Kantor.Api.Tests` (xUnit). `KwotaValidator` unit tests always run. DB tests (`ProceduryTests` for procedures, `AlertyTests` for alert triggers; Npgsql, each test in a rolled-back transaction) need `KANTOR_TEST_DB` (Npgsql connection string to a DB with `schema.sql` applied), otherwise they are skipped via `[BazaFact]`. New .NET projects go into `src/` or `tests/` and are added with `dotnet sln Kantor.slnx add <csproj>`.
 
 ## Architecture and conventions
 
 - **Database First.** `Data/KantorDbContext.cs` and `Models/` are generated with EF reverse engineering from the Postgres schema. Change `schema.sql` first, then regenerate or update the models to match. Do not add EF migrations.
 - **Schema script is idempotent**: `CREATE TABLE IF NOT EXISTS` plus `CREATE OR REPLACE PROCEDURE`. It **never adds columns to existing tables**, so a column change needs a manual `ALTER` or a dropped volume (`docker compose down -v`).
 - **Money logic lives in DB procedures**: `przelew`, `przewalutowanie`, `doladowanie`, `zmiana_aktualnego_kursu_walut`. They lock rows with `FOR UPDATE` and are atomic. The PLN amount is rounded in the DB (`ROUND(..., 2)`). Controllers call the procedures and do not change balances themselves. The mobile app must never compute or modify balances (this is a requirement).
-- **Exchange semantics** (from the user's perspective): `ZAKUP` = the user buys foreign currency for PLN at the exchange office's `kurs_sprzedazy`. `SPRZEDAZ` = the user sells foreign currency for PLN at `kurs_zakupu`. `kwota` is always the EUR/USD amount. Before each exchange the backend refreshes NBP rates and aborts if that fails. The rate used is stored with the transaction.
+- **Exchange semantics** (from the user's perspective): `ZAKUP` = the user buys foreign currency for PLN at the exchange office's `kurs_sprzedazy`. `SPRZEDAZ` = the user sells foreign currency for PLN at `kurs_zakupu`. `kwota` is always the foreign-currency amount. Before each exchange the backend refreshes NBP rates and aborts if that fails. The rate used is stored with the transaction.
 - **Rate alerts** (`alerty_kursowe`, `AlertyController`, `/konta/me/alerty`): fulfilment is set by DB triggers, not C#: `sprawdz_alerty_kursowe` (AFTER INSERT OR UPDATE on `aktualne_kursy_walut`) and `sprawdz_nowy_alert` (BEFORE INSERT on `alerty_kursowe`). `ZAKUP` fires when `kurs_sprzedazy <= prog`, `SPRZEDAZ` when `kurs_zakupu >= prog`; one-shot. Triggers are idempotent via `CREATE OR REPLACE FUNCTION` + `DROP TRIGGER IF EXISTS`.
 - **Currencies are data, not code**: table `waluty` (PLN, EUR, USD, CHF, GBP) drives validation, NBP refresh and `/saldo`. Adding one = one `INSERT` in `schema.sql` (must exist in NBP table C). Balances live in `salda (id_konta, waluta, saldo)`; a missing row means 0, rows are created on first credit (`INSERT ... ON CONFLICT ON CONSTRAINT salda_pkey DO UPDATE`). Debits are `UPDATE ... WHERE saldo >= kwota` + `IF NOT FOUND`.
 - **PL/pgSQL gotcha**: procedure params `waluta` / `id_konta` clash with `salda` columns. Alias the table (`AS s`) and qualify params (`przewalutowanie.id_konta`), or Postgres raises "column reference is ambiguous".
@@ -44,15 +44,20 @@ Tests: `backend/tests/Kantor.Api.Tests` (xUnit). `KwotaValidator` unit tests alw
 
 ## Current state / known gaps (as of 2026-10-14)
 
-- Auth done (B01/B02/B09/B10): `POST /auth/register`, `POST /auth/login` → JWT (`sub` = account id, 60 min, HMAC-SHA256, key `Jwt:Key` in User Secrets / `Jwt__Key` env, min. 32 chars or the API won't start). `[Authorize]` on `KontaController`, `PrzelewyController` and `AlertyController`; the account id always comes from the token via `User.IdKonta()` (`Controllers/AuthController.cs`), routes are `/konta/me/...`. Transfers take `loginOdbiorcy`. Public: `/auth/*`, `/kursy*`, `/test`, `/testdb`.
-- Fixed: seed users `test` / `test2` (password `test123`) are stored as an Identity hash; `schema.sql` also rewrites old plaintext rows. Top-ups go through procedure `doladowanie` and are logged in `historia_doladowan`. `GET /konta/me/transakcje` returns the combined history (in-memory merge, no paging yet).
+Backend, DB and Docker are done (B01–B12, B15–B18 in [docs/BACKLOG_BACKEND.md](docs/BACKLOG_BACKEND.md); `tasks.yaml` statuses are up to date).
+
+**Done**
+- Auth: `POST /auth/register`, `POST /auth/login` → JWT (`sub` = account id, 60 min, HMAC-SHA256, key `Jwt:Key` in User Secrets / `Jwt__Key` env, min. 32 chars or the API won't start). `[Authorize]` on `KontaController`, `TransakcjeController`, `PrzelewyController`, `AlertyController`; the account id always comes from the token via `User.IdKonta()` (`Controllers/AuthController.cs`), routes are `/konta/me/...`. Transfers take `loginOdbiorcy`. Public: `/auth/*`, `/kursy*`, `/test`, `/testdb`.
+- Seed users `test` / `test2` (password `test123`) are stored as an Identity hash; `schema.sql` also rewrites old plaintext rows. Top-ups go through procedure `doladowanie` and are logged in `historia_doladowan`. `GET /konta/me/transakcje` returns the combined history.
+- Rates: `Services/OdswiezanieKursow.cs` (hosted service) refreshes table C at startup and every `Kursy:OdswiezanieMinuty` (default 15). `GET /kursy` reads only from the DB (calls NBP only if the table is empty or `?odswiez=true`). Exchange still refreshes from NBP first and fails on NBP errors. NBP base URL: `Nbp:Adres`. `GET /kursy/historyczne?waluta=&od=&do=` (table A, max 93 days, default last 7 days).
 - Health endpoints are `GET /test` and `GET /testdb` (`StatusController`). CORS is not configured (not needed for the native app). JwtBearer `401` responses have an empty body (no `{ error }`).
-- Mobile is template + tab layout only (`index`, `profile`, `exchange` screens WIP). There is no API client yet. `app.json` references `./assets/...` images, but `mobile/assets/` is not in the repo.
-- Backlog statuses in `.backlog/tasks.yaml` lag behind the code: most backend tasks still show `backlog` even though they are implemented.
-- Postman collections are in `postman/`.
 - Compose services have no `container_name` (containers are `<project>-db-1` etc.), so several stacks can run with `-p <name>`. The `api` container runs in Production (no OpenAPI) and listens on 8080 → host `${API_PORT:-5171}`. `JWT_KEY` is optional for compose itself (`db` starts without it); the `api` container refuses to start without a 32+ char key.
-- B18 done: `Services/OdswiezanieKursow.cs` (hosted service) refreshes table C at startup and every `Kursy:OdswiezanieMinuty` (default 15). `GET /kursy` reads only from the DB (calls NBP only if the table is empty or `?odswiez=true`). Exchange still refreshes from NBP first and fails on NBP errors. NBP base URL is configurable via `Nbp:Adres`.
-- `GET /kursy/historyczne` re-fetches the whole requested range from NBP on every call (no "only missing days" logic yet).
+- Postman collections are in `postman/` (`konta`, `kursy`, `przelewy`, NBP).
+
+**Gaps**
+- Mobile is template + tab layout only (`index`, `profile`, `exchange` screens WIP). There is no API client yet. `app.json` references `./assets/...` images, but `mobile/assets/` is not in the repo.
+- No ERD in `docs/diagrams/` yet (B13; how-to in BACKLOG_BACKEND.md). Other stage-1 diagrams and the report are open.
+- `/konta/me/transakcje` merges three queries in memory (no paging). `/kursy/historyczne` re-fetches the whole requested range from NBP on every call (no "only missing days" logic).
 
 ## Workflow
 
