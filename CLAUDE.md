@@ -38,14 +38,14 @@ Tests: `backend/tests/Kantor.Api.Tests` (xUnit). `KwotaValidator` unit tests alw
 
 ## Secrets
 
-- DB credentials go in `.env` (gitignored) for Docker and in **User Secrets** (`ConnectionStrings:KantorDb`) for the API. Never put them in `appsettings*.json`.
+- DB credentials go in `.env` (gitignored) for Docker and in **User Secrets** (`ConnectionStrings:KantorDb`, `Jwt:Key`) for the API. Never put them in `appsettings*.json`.
 - Requirement: no plaintext credentials in the DB or the repo.
 
 ## Current state / known gaps (as of 2026-10-14)
 
-- **No auth yet**: there is no JWT and no login endpoint, and accounts are addressed by `{id}` in the URL (task_012/013 are open). Requirements need registration + login + authorization.
-- Fixed: seed users `test` / `test2` (password `test123`) are stored as an Identity hash; `schema.sql` also rewrites old plaintext rows. Top-ups go through procedure `doladowanie` and are logged in `historia_doladowan`. `GET /konta/{id}/transakcje` returns the combined history (in-memory merge, no paging yet).
-- `backend/README.md` mentions `/health`, but the actual health endpoints are `GET /test` and `GET /testdb` (`StatusController`). CORS is not configured.
+- Auth done (B01/B02/B09/B10): `POST /auth/register`, `POST /auth/login` → JWT (`sub` = account id, 60 min, HMAC-SHA256, key `Jwt:Key` in User Secrets / `Jwt__Key` env, min. 32 chars or the API won't start). `[Authorize]` on `KontaController` and `PrzelewyController`; the account id always comes from the token via `User.IdKonta()` (`Controllers/AuthController.cs`), routes are `/konta/me/...`. Transfers take `loginOdbiorcy`. Public: `/auth/*`, `/kursy*`, `/test`, `/testdb`.
+- Fixed: seed users `test` / `test2` (password `test123`) are stored as an Identity hash; `schema.sql` also rewrites old plaintext rows. Top-ups go through procedure `doladowanie` and are logged in `historia_doladowan`. `GET /konta/me/transakcje` returns the combined history (in-memory merge, no paging yet).
+- Health endpoints are `GET /test` and `GET /testdb` (`StatusController`). CORS is not configured (not needed for the native app). JwtBearer `401` responses have an empty body (no `{ error }`).
 - Mobile is template + tab layout only (`index`, `profile`, `exchange` screens WIP). There is no API client yet. `app.json` references `./assets/...` images, but `mobile/assets/` is not in the repo.
 - Backlog statuses in `.backlog/tasks.yaml` lag behind the code: most backend tasks still show `backlog` even though they are implemented.
 - Postman collections are in `postman/`.

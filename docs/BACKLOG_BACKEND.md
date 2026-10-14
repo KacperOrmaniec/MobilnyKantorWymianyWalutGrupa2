@@ -25,14 +25,14 @@ W nawiasie odpowiednik w `.backlog/tasks.yaml`, jeśli istnieje.
 
 ## P0: konieczne do zaliczenia
 
-### B01. Logowanie i JWT (task_012)
+### ✅ B01. Logowanie i JWT (task_012): zrobione
 - `POST /auth/login` (`login`, `haslo`) weryfikuje hasło przez `PasswordHasher<Konto>.VerifyHashedPassword` i zwraca JWT z `sub` = id konta, ważny np. 60 min.
 - Rejestrację przenieść lub zdublować jako `POST /auth/register`; `POST /konta` może zostać.
 - Klucz JWT w User Secrets (`Jwt:Key`) i w `.env` dla Dockera, **nie** w `appsettings.json`.
 - Paczka: `Microsoft.AspNetCore.Authentication.JwtBearer`.
 - **AC:** dobre dane dają `200` i token, złe dają `401` z tym samym komunikatem dla złego loginu i złego hasła.
 
-### B02. Autoryzacja endpointów (task_013)
+### ✅ B02. Autoryzacja endpointów (task_013): zrobione
 - `[Authorize]` na wszystkich endpointach konta, przelewów i wymiany. `/kursy` i `/auth/*` zostają publiczne.
 - Id konta brać z tokena, nie z URL: `/konta/{id}/saldo` → `/konta/me/saldo`, a `idNadawcy` w przelewie znika z body.
 - **AC:** bez tokena jest `401`. Użytkownik A nie może odczytać ani zmienić danych B.
@@ -47,7 +47,7 @@ W nawiasie odpowiednik w `.backlog/tasks.yaml`, jeśli istnieje.
 - Nowa tabela `historia_doladowan` (id, id_konta, kwota, `Timestamp`) i procedura `doladowanie`, która zmienia saldo i zapisuje historię atomowo, tak jak pozostałe.
 - **AC:** każde doładowanie ma wpis w historii. Błąd zapisu historii wycofuje zmianę salda.
 
-### B05. API dostępne z telefonu lub emulatora
+### ✅ B05. API dostępne z telefonu lub emulatora: zrobione
 - API słucha tylko na `localhost:5171`, więc telefon z Expo Go się do niego nie dostanie.
 - Dodać profil w `launchSettings.json` z `http://0.0.0.0:5171`. Opisać w README, że emulator Androida używa `10.0.2.2`, a telefon IP komputera w tej samej sieci Wi-Fi.
 - **AC:** zespół mobile woła `GET /test` z telefonu i dostaje `200`.
@@ -66,25 +66,25 @@ W nawiasie odpowiednik w `.backlog/tasks.yaml`, jeśli istnieje.
 - Rodzaj wymiany (`ZAKUP`/`SPRZEDAZ`) da się wyliczyć z `Waluta_sprzedana = 'PLN'`. Opcjonalnie dodać kolumnę `typ`.
 - **AC:** ekran historii w mobile potrzebuje jednego wywołania.
 
-### B08. Kursy archiwalne z parametrami (task_015)
+### ✅ B08. Kursy archiwalne z parametrami (task_015): zrobione
 - `GET /kursy/historyczne?waluta=EUR&od=2026-09-01&do=2026-10-14`. NBP pozwala na max 93 dni na zapytanie.
 - Brakujące dni pobierać z NBP, już zapisane czytać z bazy.
 - **AC:** walidacja zakresu (`od <= do`, ≤ 93 dni, nie w przyszłości). Dane nadają się pod wykres (B15).
 
-### B09. Walidacja rejestracji
+### ✅ B09. Walidacja rejestracji: zrobione
 - Minimalna długość hasła (np. 8), dozwolone znaki loginu, przycinanie spacji.
 - **AC:** słabe hasło daje `400` z czytelnym komunikatem.
 
-### B10. Endpoint profilu
+### ✅ B10. Endpoint profilu: zrobione
 - `GET /konta/me` zwraca id, login, imię, nazwisko i salda. Pod ekran `profile` w mobile.
 
-### B11. Dockerfile API i serwis `api` w compose (task_021)
+### ✅ B11. Dockerfile API i serwis `api` w compose (task_021): zrobione
 - Wieloetapowy `Dockerfile` (sdk → aspnet) w `backend/`.
 - Serwis `api` z `depends_on: db: condition: service_healthy` i portem `5171`.
 - Connection string i klucz JWT podawane przez zmienne `ConnectionStrings__KantorDb` oraz `Jwt__Key` z `.env`.
 - **AC:** `docker compose up -d` stawia bazę i API, `GET /testdb` zwraca `connected: true`.
 
-### B12. Testy backendu (task_020)
+### ✅ B12. Testy backendu (task_020): zrobione
 - Projekt `backend/tests/Kantor.Api.Tests` (xUnit), dodany do `Kantor.slnx`.
 - Minimum: `KwotaValidator`, logowanie, a procedury `przewalutowanie` i `przelew` sprawdzone na prawdziwej bazie z Dockera (brak salda, zły kurs, wycofanie zmian).
 - **AC:** `dotnet test` przechodzi lokalnie. Scenariusze opisane do raportu („przetestowanie podstawowych scenariuszy”).

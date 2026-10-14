@@ -82,11 +82,15 @@ W Visual Studio:
 {
   "ConnectionStrings": {
     "KantorDb": "Host=localhost;Port=5432;Database=kantor;Username=kantor;Password=TWOJE_HASLO"
+  },
+  "Jwt": {
+    "Key": "DOWOLNY_LOSOWY_CIAG_MIN_32_ZNAKI"
   }
 }
 ```
 
 Zastąp `TWOJE_HASLO` hasłem `POSTGRES_PASSWORD` ustawionym w pliku `.env`.
+`Jwt:Key` to klucz do podpisywania tokenów logowania: dowolny losowy ciąg, **co najmniej 32 znaki** (bez niego API nie wystartuje). Można go wygenerować np. poleceniem `openssl rand -base64 48`. W Dockerze ten sam klucz podaje się zmienną `Jwt__Key`.
 Jeśli zmienisz `POSTGRES_DB`, `POSTGRES_USER` lub `POSTGRES_PORT`, dostosuj także pola `Database`, `Username` i `Port` w powyższym połączeniu.
 
 Plik `secrets.json` jest przechowywany lokalnie, poza repozytorium Git, i nie jest wysyłany na GitHuba.
@@ -166,24 +170,31 @@ Kod musi być w tabeli C NBP (np. JPY, CZK, NOK, SEK). Zmiany w kodzie nie są p
 
 W folderze [postman/](postman/) znajdują się kolekcje requestów backendu i API NBP, które można zaimportować do Postmana.
 
-Adres bazowy: `http://localhost:5171`. Body dla POST wysyłaj jako JSON; `{id}` to ID użytkownika.
+Adres bazowy: `http://localhost:5171`. Body dla POST wysyłaj jako JSON.
 
-UWAGA!!! Aktualnie JWT logowanie nie zostało zaimplementowane!!!
+**Logowanie:** najpierw `POST /auth/register`, potem `POST /auth/login`, który zwraca `{ "token": "...", "wygasa": "..." }` (token ważny 60 minut).
+Endpointy z „tak” w kolumnie Token wymagają nagłówka `Authorization: Bearer <token>`; bez niego zwracają `401`.
+Konto zawsze wynika z tokena (`/konta/me/...`), więc użytkownik ma dostęp tylko do własnych danych.
 
-| Metoda | Adres                                  | Co robi                                        | Body (JSON)                                                            |
-| ------ | -------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------- |
-| GET    | `/test`                                | Sprawdza działanie API.                        | —                                                                      |
-| GET    | `/testdb`                              | Sprawdza połączenie z bazą.                    | —                                                                      |
-| GET    | `/konta/{id}/saldo`                    | Pobiera salda we wszystkich walutach.          | —                                                                      |
-| POST   | `/konta`                               | Dodaje użytkownika.                            | `{"login":"jan","haslo":"test123","imie":"Jan","nazwisko":"Kowalski"}` |
-| POST   | `/konta/{id}/doladowanie`              | Doładowuje saldo PLN i zapisuje historię.      | `{"kwota":100}`                                                        |
-| GET    | `/konta/{id}/historia-przelewow`       | Pobiera przelewy z nazwami nadawcy i odbiorcy. | —                                                                      |
-| GET    | `/konta/{id}/historia-przewalutowania` | Pobiera historię wymiany walut.                | —                                                                      |
-| GET    | `/konta/{id}/transakcje`               | Wspólna historia: przelewy, wymiany, doładowania. | —                                                                   |
-| GET    | `/kursy`                               | Odświeża kursy walut z NBP i zwraca je z bazy. | —                                                                      |
-| GET    | `/kursy/historyczne?waluta=EUR&od=2026-09-01&do=2026-10-14` | Kursy średnie NBP z zakresu dat (wszystkie parametry opcjonalne, domyślnie ostatnie 7 dni i wszystkie waluty), rosnąco po dacie. | — |
-| POST   | `/przelewy`                            | Wykonuje przelew.                              | `{"idNadawcy":1,"idOdbiorcy":2,"kwota":50,"waluta":"PLN"}`             |
-| POST   | `/konta/{id}/przewalutowanie`          | Wymienia PLN na walutę obcą lub odwrotnie.     | `{"waluta":"EUR","kwota":10,"typTransakcji":"ZAKUP"}`                  |
+| Metoda | Adres | Token | Co robi | Body (JSON) |
+| ------ | ----- | ----- | ------- | ----------- |
+| GET | `/test` | — | Sprawdza działanie API. | — |
+| GET | `/testdb` | — | Sprawdza połączenie z bazą. | — |
+| POST | `/auth/register` | — | Rejestruje użytkownika (`201`). | `{"login":"jan","haslo":"tajnehaslo","imie":"Jan","nazwisko":"Kowalski"}` |
+| POST | `/auth/login` | — | Loguje i zwraca token JWT. | `{"login":"jan","haslo":"tajnehaslo"}` |
+| GET | `/konta/me` | tak | Profil: id, login, imię, nazwisko i salda. | — |
+| GET | `/konta/me/saldo` | tak | Pobiera salda we wszystkich walutach. | — |
+| POST | `/konta/me/doladowanie` | tak | Doładowuje saldo PLN i zapisuje historię. | `{"kwota":100}` |
+| GET | `/konta/me/historia-przelewow` | tak | Pobiera przelewy z nazwami nadawcy i odbiorcy. | — |
+| GET | `/konta/me/historia-przewalutowania` | tak | Pobiera historię wymiany walut. | — |
+| GET | `/konta/me/transakcje` | tak | Wspólna historia: przelewy, wymiany, doładowania. | — |
+| GET | `/kursy` | — | Odświeża kursy walut z NBP i zwraca je z bazy. | — |
+| GET | `/kursy/historyczne?waluta=EUR&od=2026-09-01&do=2026-10-14` | — | Kursy średnie NBP z zakresu dat (parametry opcjonalne, domyślnie ostatnie 7 dni i wszystkie waluty), rosnąco po dacie. | — |
+| POST | `/przelewy` | tak | Wykonuje przelew z konta zalogowanego do konta o podanym loginie. | `{"loginOdbiorcy":"anna","kwota":50,"waluta":"PLN"}` |
+| POST | `/konta/me/przewalutowanie` | tak | Wymienia PLN na walutę obcą lub odwrotnie. | `{"waluta":"EUR","kwota":10,"typTransakcji":"ZAKUP"}` |
+
+Rejestracja: login 3–100 znaków (litery bez polskich znaków, cyfry, `.`, `_`, `-`), hasło min. 8 znaków, imię i nazwisko niepuste (maks. 100 znaków). Spacje na początku i końcu są obcinane.
+Zły login i złe hasło przy logowaniu dają ten sam `401` z komunikatem `Nieprawidłowy login lub hasło.`.
 
 Obsługiwane waluty są w tabeli `waluty` (PLN, EUR, USD, CHF, GBP). Przelew obsługuje każdą z nich. Przy przewalutowaniu `kwota` oznacza ilość waluty obcej: `ZAKUP` kupuje walutę za PLN, a `SPRZEDAZ` sprzedaje ją za PLN. Kwoty muszą być dodatnie i mieć najwyżej 2 miejsca po przecinku.
 

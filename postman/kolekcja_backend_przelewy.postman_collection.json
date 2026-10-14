@@ -7,19 +7,56 @@
   },
   "item": [
     {
-      "name": "wykonanie przelewu",
+      "name": "Logowanie (zapisuje token)",
       "request": {
         "method": "POST",
         "header": [],
+        "url": {
+          "raw": "http://localhost:5171/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5171",
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"idNadawcy\": 1,\r\n  \"idOdbiorcy\": 2,\r\n  \"kwota\": 1,\r\n  \"waluta\": \"EUR\"\r\n}",
+          "raw": "{\r\n  \"login\": \"andrzej\",\r\n  \"haslo\": \"tajnehaslo\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
             }
           }
         },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Zapisuje token do zmiennej kolekcji {{token}}, używanej przez pozostałe requesty.",
+              "if (pm.response.code === 200) {",
+              "  pm.collectionVariables.set(\"token\", pm.response.json().token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "wykonanie przelewu",
+      "request": {
+        "method": "POST",
+        "header": [],
         "url": {
           "raw": "http://localhost:5171/przelewy",
           "protocol": "http",
@@ -30,9 +67,35 @@
           "path": [
             "przelewy"
           ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"loginOdbiorcy\": \"test2\",\r\n  \"kwota\": 1,\r\n  \"waluta\": \"EUR\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
         }
       },
       "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
     }
   ]
 }

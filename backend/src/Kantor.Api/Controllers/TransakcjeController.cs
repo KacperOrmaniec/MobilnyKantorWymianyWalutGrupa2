@@ -1,10 +1,12 @@
 using Kantor.Api.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kantor.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("konta")]
 public class TransakcjeController(KantorDbContext db) : ControllerBase
 {
@@ -20,12 +22,13 @@ public class TransakcjeController(KantorDbContext db) : ControllerBase
         DateTime Data,
         string? Kontrahent);
 
-    // Zwraca przelewy, przewalutowania i doładowania konta w jednej liście, od najnowszych.
+    // Zwraca przelewy, przewalutowania i doładowania zalogowanego użytkownika w jednej liście, od najnowszych.
     // ponytail: 3 zapytania + sortowanie w pamięci, wczytuje całą historię konta;
     // przy dużej liczbie wpisów dodać paginację (?od=&limit=) albo UNION ALL w SQL.
-    [HttpGet("{id:long}/transakcje")]
-    public async Task<IActionResult> PobierzTransakcje(long id)
+    [HttpGet("me/transakcje")]
+    public async Task<IActionResult> PobierzTransakcje()
     {
+        var id = User.IdKonta();
         if (!await db.Konta.AnyAsync(k => k.Id == id))
             return NotFound(new { error = "Konto nie istnieje." });
 
