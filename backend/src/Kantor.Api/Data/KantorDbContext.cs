@@ -14,6 +14,8 @@ public partial class KantorDbContext : DbContext
 
     public virtual DbSet<AktualneKursyWalut> AktualneKursyWaluts { get; set; }
 
+    public virtual DbSet<AlertKursowy> AlertyKursowe { get; set; }
+
     public virtual DbSet<HistoriaDoladowan> HistoriaDoladowans { get; set; }
 
     public virtual DbSet<HistoriaPrzelewów> HistoriaPrzelewóws { get; set; }
@@ -48,6 +50,34 @@ public partial class KantorDbContext : DbContext
                 .HasPrecision(18, 6)
                 .HasColumnName("kurs_zakupu");
             entity.Property(e => e.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.Waluta)
+                .HasMaxLength(10)
+                .HasColumnName("waluta");
+        });
+
+        modelBuilder.Entity<AlertKursowy>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("alerty_kursowe_pkey");
+
+            entity.ToTable("alerty_kursowe");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.IdKonta).HasColumnName("id_konta");
+            entity.Property(e => e.KursSpelnienia)
+                .HasPrecision(18, 6)
+                .HasColumnName("kurs_spelnienia");
+            entity.Property(e => e.Prog)
+                .HasPrecision(18, 6)
+                .HasColumnName("prog");
+            entity.Property(e => e.Spelniono).HasColumnName("spelniono");
+            entity.Property(e => e.Typ)
+                .HasMaxLength(10)
+                .HasColumnName("typ");
+            entity.Property(e => e.Utworzono)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("utworzono");
             entity.Property(e => e.Waluta)
                 .HasMaxLength(10)
                 .HasColumnName("waluta");

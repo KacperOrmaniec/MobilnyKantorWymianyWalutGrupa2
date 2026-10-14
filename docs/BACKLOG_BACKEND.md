@@ -111,8 +111,9 @@ W nawiasie odpowiednik w `.backlog/tasks.yaml`, jeśli istnieje.
 
 ### ✅ B16. Więcej walut: zrobione (gałąź `feature/salda-tabela`), patrz niżej
 
-### B17. Alerty kursowe
-- Tabela `alerty` (id_konta, waluta, próg, kierunek). `BackgroundService` sprawdza kursy co X minut, a mobile dostaje listę alertów, które się spełniły.
+### ✅ B17. Alerty kursowe: zrobione
+- Tabela `alerty_kursowe` (id_konta, waluta, typ ZAKUP/SPRZEDAZ, próg, spelniono, kurs_spelnienia). Spełnienie sprawdza trigger na `aktualne_kursy_walut` (każde odświeżenie kursów, także przyszły `BackgroundService` z B18) oraz trigger przy tworzeniu alertu. Alert jest jednorazowy.
+- API: `POST`/`GET /konta/me/alerty`, `DELETE /konta/me/alerty/{id}`; mobile odpytuje listę i pokazuje alerty z `spelniono != null`. Limit 20 aktywnych alertów na konto.
 
 ### ✅ B18. Odświeżanie kursów w tle: zrobione
 - `BackgroundService` co np. 15 min, a `GET /kursy` czyta tylko z bazy. Gdy NBP leży, mobile i tak dostaje ostatni kurs z datą aktualizacji (tryb „offline” dla kursów).

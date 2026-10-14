@@ -479,4 +479,87 @@ BEGIN
 END;
 $$;
 
+
+-- =====================================================
+-- 10. TABELA: alerty_kursowe
+-- =====================================================
+-- Jednorazowy alert użytkownika. Typ z perspektywy użytkownika (jak w przewalutowaniu):
+-- ZAKUP spełniony, gdy kurs_sprzedazy <= prog; SPRZEDAZ, gdy kurs_zakupu >= prog.
+
+CREATE TABLE IF NOT EXISTS public.alerty_kursowe (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    id_konta BIGINT NOT NULL
+        REFERENCES public.konta(id),
+
+    waluta VARCHAR(10) NOT NULL
+        REFERENCES public.waluty(kod),
+
+    typ VARCHAR(10) NOT NULL
+        CHECK (typ IN ('ZAKUP', 'SPRZEDAZ')),
+
+    prog NUMERIC(18,6) NOT NULL
+        CHECK (prog > 0),
+
+    utworzono TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    spelniono TIMESTAMPTZ NULL,
+    kurs_spelnienia NUMERIC(18,6) NULL
+);
+
+
+-- =====================================================
+-- 11. TRIGGERY: sprawdzanie alertów
+-- =====================================================
+
+-- Po każdej zmianie kursu oznacza spełnione alerty tej waluty.
+CREATE OR REPLACE FUNCTION public.sprawdz_alerty_kursowe()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE public.alerty_kursowe AS a
+    SET spelniono = now(),
+        kurs_spelnienia = CASE a.typ WHEN 'ZAKUP' THEN NEW.kurs_sprzedazy ELSE NEW.kurs_zakupu END
+    WHERE a.waluta = NEW.waluta
+      AND a.spelniono IS NULL
+      AND ((a.typ = 'ZAKUP' AND NEW.kurs_sprzedazy <= a.prog)
+        OR (a.typ = 'SPRZEDAZ' AND NEW.kurs_zakupu >= a.prog));
+
+    RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS sprawdz_alerty_kursowe ON public."aktualne_kursy_walut";
+CREATE TRIGGER sprawdz_alerty_kursowe
+    AFTER INSERT OR UPDATE ON public."aktualne_kursy_walut"
+    FOR EACH ROW EXECUTE FUNCTION public.sprawdz_alerty_kursowe();
+
+-- Nowy alert, którego warunek już jest spełniony wg aktualnego kursu, od razu oznacza jako spełniony.
+CREATE OR REPLACE FUNCTION public.sprawdz_nowy_alert()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_kurs NUMERIC(18,6);
+BEGIN
+    SELECT CASE NEW.typ WHEN 'ZAKUP' THEN k.kurs_sprzedazy ELSE k.kurs_zakupu END
+    INTO v_kurs
+    FROM public."aktualne_kursy_walut" AS k
+    WHERE k.waluta = NEW.waluta;
+
+    IF (NEW.typ = 'ZAKUP' AND v_kurs <= NEW.prog)
+       OR (NEW.typ = 'SPRZEDAZ' AND v_kurs >= NEW.prog) THEN
+        NEW.spelniono := now();
+        NEW.kurs_spelnienia := v_kurs;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS sprawdz_nowy_alert ON public.alerty_kursowe;
+CREATE TRIGGER sprawdz_nowy_alert
+    BEFORE INSERT ON public.alerty_kursowe
+    FOR EACH ROW EXECUTE FUNCTION public.sprawdz_nowy_alert();
+
 COMMIT;
