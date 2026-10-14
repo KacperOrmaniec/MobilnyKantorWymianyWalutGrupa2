@@ -48,6 +48,31 @@ postman/        kolekcje requestów (backend, NBP)
 .backlog/       zadania (backlog CLI)
 ```
 
+## Szybki start: uruchomienie i test w Postmanie
+
+Najkrótsza droga, żeby zobaczyć działający backend (bez Visual Studio):
+
+```powershell
+copy .env.example .env          # potem ustaw własne hasła i JWT_KEY (szczegóły niżej)
+docker compose up -d --build    # baza + pgAdmin + API, pierwszy build ok. 1–2 min
+docker compose ps               # db: healthy, api: running
+```
+
+Sprawdzenie: [http://localhost:5171/testdb](http://localhost:5171/testdb) powinno zwrócić `{"connected":true}`.
+
+Następnie zaimportuj do Postmana kolekcje `kolekcja_backend_konta`, `kolekcja_backend_przelewy` i `kolekcja_backend_kursy` z folderu [postman/](postman/) i przejdź scenariusz:
+
+1. **Logowanie** — „Logowanie (zapisuje token)” (konto testowe `test` / `test123`). Token zapisuje się sam w zmiennej kolekcji; kolekcja przelewów ma własny request logowania.
+2. **Profil** — „Profil zalogowanego użytkownika”: po 2000 w PLN, EUR, USD, CHF i GBP.
+3. **Kursy** — „pobieranie aktualnych kursów walut z bazy danych”.
+4. **Wymiana** — „Przewalutowanie”, potem ponownie „Profil”: salda się zmieniły.
+5. **Przelew** — w kolekcji przelewów: logowanie, potem „wykonanie przelewu” do `test2`.
+6. **Historia** — „Wspólna historia transakcji”: wymiana i przelew na liście.
+7. **Alerty** — dodanie alertu i lista alertów.
+8. **Błędy** — przelew większy niż saldo → `400`, request bez tokena → `401`.
+
+`docker compose down` zatrzymuje kontenery (dane zostają w wolumenach).
+
 ## Konfiguracja lokalnego środowiska
 
 ### 1. Uruchomienie bazy danych
@@ -203,6 +228,19 @@ Zły login i złe hasło przy logowaniu dają ten sam `401` z komunikatem `Niepr
 Obsługiwane waluty są w tabeli `waluty` (PLN, EUR, USD, CHF, GBP). Przelew obsługuje każdą z nich. Przy przewalutowaniu `kwota` oznacza ilość waluty obcej: `ZAKUP` kupuje walutę za PLN, a `SPRZEDAZ` sprzedaje ją za PLN. Kwoty muszą być dodatnie i mieć najwyżej 2 miejsca po przecinku.
 
 Konta testowe z seeda: `test` i `test2`, hasło `test123` (w bazie zapisany jest tylko hash).
+
+### Format błędów
+
+Każdy błąd ma postać `{ "error": "komunikat po polsku" }`, więc w aplikacji wystarczy wyświetlić pole `error`.
+
+| Kod | Kiedy |
+| --- | ----- |
+| `400` | Błędne dane (walidacja, zły JSON) albo odmowa procedury, np. `Niewystarczające saldo PLN`. |
+| `401` | Brak, zły lub wygasły token (`Brak lub nieprawidłowy token. Zaloguj się ponownie.`) albo zły login lub hasło przy logowaniu. |
+| `404` | Nie istnieje, np. odbiorca przelewu lub alert. |
+| `409` | Login jest już zajęty. |
+| `500` | Błąd bazy danych lub serwera. |
+| `502` / `504` | NBP zwróciło błąd / nie odpowiedziało; wymiana waluty nie jest wtedy wykonywana. |
 
 ## Podejście Database First
 

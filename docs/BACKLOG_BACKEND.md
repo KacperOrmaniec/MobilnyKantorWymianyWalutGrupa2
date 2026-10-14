@@ -91,7 +91,7 @@ W nawiasie odpowiednik w `.backlog/tasks.yaml`, jeśli istnieje.
 - Minimum: `KwotaValidator`, logowanie, a procedury `przewalutowanie` i `przelew` sprawdzone na prawdziwej bazie z Dockera (brak salda, zły kurs, wycofanie zmian).
 - **AC:** `dotnet test` przechodzi lokalnie. Scenariusze opisane do raportu („przetestowanie podstawowych scenariuszy”).
 
-### B13. Diagram ERD z `schema.sql`
+### ➡️ B13. Diagram ERD z `schema.sql`: poza naszym zakresem (diagramy i dokumentację robi osoba od dokumentacji; poniższa instrukcja może jej pomóc)
 - Diagram ERD jest wymagany w etapie 1, a my znamy bazę najlepiej. Wygenerować go z pgAdmina (ERD Tool) lub DBeavera i zapisać w `docs/diagrams/`.
 - Jak w pgAdmin: `docker compose up -d db pgadmin`, wejść na http://localhost:5050 (`admin@example.com` / `PGADMIN_PASSWORD`), dodać serwer (host `db`, port `5432`, `POSTGRES_USER` / `POSTGRES_PASSWORD` z `.env`). Zaznaczyć bazę `kantor` → menu **Tools → ERD Tool** (lub prawy klik na bazie → **ERD For Database**). Ułożyć tabele, potem w pasku narzędzi **Download image** i zapisać PNG jako `docs/diagrams/erd.png`; plik źródłowy **Save** jako `docs/diagrams/erd.pgerd`.
 - Diagram ma się zgadzać z `schema.sql` (9 tabel: `konta`, `waluty`, `salda`, 3 tabele historii, 2 tabele kursów, `alerty_kursowe`). Po zmianie schematu wygenerować ponownie.

@@ -44,7 +44,7 @@ Tests: `backend/tests/Kantor.Api.Tests` (xUnit). `KwotaValidator` unit tests alw
 
 ## Current state / known gaps (as of 2026-10-14)
 
-Backend, DB and Docker are done: B01–B12 and B14–B18 in [docs/BACKLOG_BACKEND.md](docs/BACKLOG_BACKEND.md); only B13 (ERD diagram, manual in pgAdmin) is left. `tasks.yaml` statuses are up to date.
+Backend, DB and Docker are done: B01–B12 and B14–B18 in [docs/BACKLOG_BACKEND.md](docs/BACKLOG_BACKEND.md); B13 (ERD) belongs to the team's docs/diagrams person, not the backend. `tasks.yaml` statuses are up to date.
 
 **Done**
 - Auth: `POST /auth/register`, `POST /auth/login` → JWT (`sub` = account id, 60 min, HMAC-SHA256, key `Jwt:Key` in User Secrets / `Jwt__Key` env, min. 32 chars or the API won't start). `[Authorize]` on `KontaController`, `TransakcjeController`, `PrzelewyController`, `AlertyController`; the account id always comes from the token via `User.IdKonta()` (`Controllers/AuthController.cs`), routes are `/konta/me/...`. Transfers take `loginOdbiorcy`. Public: `/auth/*`, `/kursy*`, `/test`, `/testdb`.
