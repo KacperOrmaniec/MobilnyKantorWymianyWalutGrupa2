@@ -59,12 +59,19 @@ CREATE TABLE IF NOT EXISTS public.salda (
 -- =====================================================
 -- DODANIE TESTOWYCH UŻYTKOWNIKÓW
 -- =====================================================
+-- Hasło testowe obu kont to test123. W bazie jest tylko jego hash
+-- ASP.NET Core Identity (PasswordHasher, format V3), wygenerowany raz.
 
 INSERT INTO public.konta (login, haslo, "Imie", "Nazwisko")
 VALUES
-    ('test', 'test123', 'Adam', 'Kowalski'),
-    ('test2', 'test123', 'Adam', 'Kowalski')
+    ('test', 'AQAAAAIAAYagAAAAEL92QF32yDtVH1vr8D8inuMYn1j53JXbYG2lVQdFIbB7C9YgvTsP4MRxM/z9XvzSzQ==', 'Adam', 'Kowalski'),
+    ('test2', 'AQAAAAIAAYagAAAAEL92QF32yDtVH1vr8D8inuMYn1j53JXbYG2lVQdFIbB7C9YgvTsP4MRxM/z9XvzSzQ==', 'Adam', 'Kowalski')
 ON CONFLICT (login) DO NOTHING;
+
+-- Naprawa baz utworzonych ze starym seedem (jawne hasło).
+UPDATE public.konta
+SET haslo = 'AQAAAAIAAYagAAAAEL92QF32yDtVH1vr8D8inuMYn1j53JXbYG2lVQdFIbB7C9YgvTsP4MRxM/z9XvzSzQ=='
+WHERE login IN ('test', 'test2') AND haslo = 'test123';
 
 -- Po 2000 w każdej walucie, tylko przy pierwszym utworzeniu.
 INSERT INTO public.salda (id_konta, waluta, saldo)
@@ -128,6 +135,26 @@ CREATE TABLE IF NOT EXISTS public.historia_przewalutowania (
 
 
 -- =====================================================
+-- 3a. TABELA: historia_doladowan
+-- =====================================================
+-- Doładowania konta (na razie zawsze PLN).
+
+CREATE TABLE IF NOT EXISTS public.historia_doladowan (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "Timestamp" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    id_konta BIGINT NOT NULL
+        REFERENCES public.konta(id),
+
+    "Kwota" NUMERIC(18,2) NOT NULL
+        CHECK ("Kwota" > 0),
+
+    "Waluta" VARCHAR(10) NOT NULL
+        REFERENCES public.waluty(kod)
+);
+
+
+-- =====================================================
 -- 4. TABELA: aktualne_kursy_walut
 -- =====================================================
 
@@ -185,22 +212,22 @@ BEGIN
     IF id_konta_nadawcy IS NULL
        OR id_konta_nabywcy IS NULL
        OR id_konta_nadawcy = id_konta_nabywcy THEN
-        RAISE EXCEPTION 'Nieprawidlowe konta przelewu';
+        RAISE EXCEPTION 'Nieprawidłowe konta przelewu';
     END IF;
 
     IF kwota IS NULL OR kwota <= 0
        OR kwota <> ROUND(kwota, 2) THEN
-        RAISE EXCEPTION 'Nieprawidlowa kwota przelewu';
+        RAISE EXCEPTION 'Nieprawidłowa kwota przelewu';
     END IF;
 
     v_waluta := UPPER(BTRIM(waluta));
 
     IF NOT EXISTS (SELECT 1 FROM public.waluty WHERE kod = v_waluta) THEN
-        RAISE EXCEPTION 'Nieobslugiwana waluta';
+        RAISE EXCEPTION 'Nieobsługiwana waluta';
     END IF;
 
-    -- Blokujemy oba konta w ustalonej kolejnosci,
-    -- aby uniknac konfliktow przy rownoleglych przelewach.
+    -- Blokujemy oba konta w ustalonej kolejności,
+    -- aby uniknąć konfliktów przy równoległych przelewach.
     PERFORM k.id
     FROM public.konta AS k
     WHERE k.id IN (id_konta_nadawcy, id_konta_nabywcy)
@@ -222,10 +249,10 @@ BEGIN
       AND s.saldo >= kwota;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Niewystarczajace saldo nadawcy';
+        RAISE EXCEPTION 'Niewystarczające saldo nadawcy';
     END IF;
 
-    -- Zwiekszenie salda odbiorcy
+    -- Zwiększenie salda odbiorcy
     INSERT INTO public.salda AS s (id_konta, waluta, saldo)
     VALUES (id_konta_nabywcy, v_waluta, kwota)
     ON CONFLICT ON CONSTRAINT salda_pkey
@@ -271,21 +298,21 @@ BEGIN
 
     -- Walidacja
     IF id_konta IS NULL THEN
-        RAISE EXCEPTION 'Nieprawidlowe konto';
+        RAISE EXCEPTION 'Nieprawidłowe konto';
     END IF;
 
     IF kwota IS NULL OR kwota <= 0
        OR kwota <> ROUND(kwota, 2) THEN
-        RAISE EXCEPTION 'Nieprawidlowa kwota';
+        RAISE EXCEPTION 'Nieprawidłowa kwota';
     END IF;
 
     IF v_waluta = 'PLN'
        OR NOT EXISTS (SELECT 1 FROM public.waluty WHERE kod = v_waluta) THEN
-        RAISE EXCEPTION 'Nieobslugiwana waluta';
+        RAISE EXCEPTION 'Nieobsługiwana waluta';
     END IF;
 
     IF v_typ IS NULL OR v_typ NOT IN ('ZAKUP', 'SPRZEDAZ') THEN
-        RAISE EXCEPTION 'Nieprawidlowy typ transakcji';
+        RAISE EXCEPTION 'Nieprawidłowy typ transakcji';
     END IF;
 
     -- Zablokowanie konta (wszystkie zmiany sald konta idą po kolei)
@@ -315,7 +342,7 @@ BEGIN
     v_kwota_pln := ROUND(kwota * v_kurs, 2);
 
     IF v_kwota_pln <= 0 THEN
-        RAISE EXCEPTION 'Kwota po przeliczeniu jest zbyt mala';
+        RAISE EXCEPTION 'Kwota po przeliczeniu jest zbyt mała';
     END IF;
 
     IF v_typ = 'SPRZEDAZ' THEN
@@ -341,7 +368,7 @@ BEGIN
       AND s.saldo >= v_kwota_sprzedana;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Niewystarczajace saldo %', v_waluta_sprzedana;
+        RAISE EXCEPTION 'Niewystarczające saldo %', v_waluta_sprzedana;
     END IF;
 
     -- Zwiększenie salda kupowanej waluty
@@ -378,12 +405,12 @@ AS $$
 BEGIN
 
     IF "Waluta" IS NULL OR BTRIM("Waluta") = '' THEN
-        RAISE EXCEPTION 'Waluta nie moze byc pusta';
+        RAISE EXCEPTION 'Waluta nie może być pusta';
     END IF;
 
     IF "Kurs_zakupu" IS NULL OR "Kurs_zakupu" <= 0
        OR "Kurs_sprzedazy" IS NULL OR "Kurs_sprzedazy" <= 0 THEN
-        RAISE EXCEPTION 'Kursy musza byc dodatnie';
+        RAISE EXCEPTION 'Kursy muszą być dodatnie';
     END IF;
 
     INSERT INTO public."aktualne_kursy_walut" AS t
@@ -401,6 +428,53 @@ BEGIN
         "Timestamp" = EXCLUDED."Timestamp"
 
     RETURNING t."Timestamp" INTO "Timestamp";
+
+END;
+$$;
+
+
+-- =====================================================
+-- 9. PROCEDURA: doladowanie
+-- =====================================================
+
+CREATE OR REPLACE PROCEDURE public."doladowanie"(
+    IN id_konta BIGINT,
+    IN kwota NUMERIC
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    -- Walidacja
+    IF id_konta IS NULL THEN
+        RAISE EXCEPTION 'Nieprawidłowe konto';
+    END IF;
+
+    IF kwota IS NULL OR kwota <= 0
+       OR kwota <> ROUND(kwota, 2) THEN
+        RAISE EXCEPTION 'Nieprawidłowa kwota doładowania';
+    END IF;
+
+    -- Zablokowanie konta (wszystkie zmiany sald konta idą po kolei)
+    PERFORM 1
+    FROM public.konta AS k
+    WHERE k.id = doladowanie.id_konta
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Konto nie istnieje';
+    END IF;
+
+    -- Zwiększenie salda PLN
+    -- (parametr id_konta ma tę samą nazwę co kolumna, stąd doladowanie.id_konta)
+    INSERT INTO public.salda AS s (id_konta, waluta, saldo)
+    VALUES (doladowanie.id_konta, 'PLN', kwota)
+    ON CONFLICT ON CONSTRAINT salda_pkey
+    DO UPDATE SET saldo = s.saldo + EXCLUDED.saldo;
+
+    -- Historia doładowania
+    INSERT INTO public.historia_doladowan (id_konta, "Kwota", "Waluta")
+    VALUES (doladowanie.id_konta, kwota, 'PLN');
 
 END;
 $$;
