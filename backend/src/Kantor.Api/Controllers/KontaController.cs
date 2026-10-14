@@ -2,7 +2,7 @@ using Kantor.Api.Models;
 using Kantor.Api.Services;
 using System.Text.Json;
 using Kantor.Api.Validation;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Npgsql;
 using Kantor.Api.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -11,19 +11,38 @@ using Microsoft.EntityFrameworkCore;
 namespace Kantor.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("konta")]
 public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBase
 {
 
 
-    // Pobiera salda użytkownika we wszystkich walutach (PLN pierwszy, brak wiersza = 0).
-    [HttpGet("{id:long}/saldo")]
-    public async Task<IActionResult> PobierzSaldo(long id)
+    // Pobiera profil zalogowanego użytkownika razem z saldami.
+    [HttpGet("me")]
+    public async Task<IActionResult> PobierzProfil()
     {
+        var id = User.IdKonta();
+        var konto = await db.Konta.AsNoTracking().FirstOrDefaultAsync(k => k.Id == id);
+        if (konto is null)
+            return NotFound(new { error = "Konto nie istnieje." });
+
+        return Ok(new { konto.Id, konto.Login, konto.Imie, konto.Nazwisko, Salda = await PobierzSalda(id) });
+    }
+
+    // Pobiera salda użytkownika we wszystkich walutach (PLN pierwszy, brak wiersza = 0).
+    [HttpGet("me/saldo")]
+    public async Task<IActionResult> PobierzSaldo()
+    {
+        var id = User.IdKonta();
         if (!await db.Konta.AnyAsync(k => k.Id == id))
             return NotFound(new { error = "Konto nie istnieje." });
 
-        var salda = await db.Waluty.AsNoTracking()
+        return Ok(new { Id = id, Salda = await PobierzSalda(id) });
+    }
+
+    // Salda konta we wszystkich walutach: wspólne dla /konta/me i /konta/me/saldo.
+    private async Task<object> PobierzSalda(long id) =>
+        await db.Waluty.AsNoTracking()
             .OrderBy(w => w.Kod != "PLN").ThenBy(w => w.Kod)
             .Select(w => new
             {
@@ -33,56 +52,14 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
             })
             .ToListAsync();
 
-        return Ok(new { Id = id, Salda = salda });
-    }
-
-
-
-
-    // Dodaje użytkownika z zerowym saldem i zapisuje hash hasła.
-    [HttpPost]
-    public async Task<IActionResult> DodajKonto([FromBody] DodajUzytkownika request)
-    {
-        if (string.IsNullOrWhiteSpace(request.Login) || request.Login.Length > 100 ||
-            string.IsNullOrWhiteSpace(request.Haslo) ||
-            string.IsNullOrWhiteSpace(request.Imie) || request.Imie.Length > 100 ||
-            string.IsNullOrWhiteSpace(request.Nazwisko) || request.Nazwisko.Length > 100)
-        {
-            return BadRequest(new { error = "Podaj login, hasło, imię i nazwisko. Login, imię i nazwisko mogą mieć maksymalnie 100 znaków." });
-        }
-
-        var konto = new Konto
-        {
-            Login = request.Login.Trim(),
-            Imie = request.Imie.Trim(),
-            Nazwisko = request.Nazwisko.Trim()
-        };
-        konto.Haslo = new PasswordHasher<Konto>().HashPassword(konto, request.Haslo);
-        db.Konta.Add(konto);
-
-        try
-        {
-            await db.SaveChangesAsync();
-        }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
-        {
-            return Conflict(new { error = "Ten login jest już zajęty." });
-        }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException)
-        {
-            return StatusCode(500, new { error = "Błąd bazy danych." });
-        }
-
-        return Created($"/konta/{konto.Id}/saldo", new { konto.Id, konto.Login, konto.Imie, konto.Nazwisko });
-    }
-
 
 
 
     // Dodaje podaną kwotę do salda PLN użytkownika.
-    [HttpPost("{id:long}/doladowanie")]
-    public async Task<IActionResult> DoladujKonto(long id, [FromBody] DoladujSaldo request)
+    [HttpPost("me/doladowanie")]
+    public async Task<IActionResult> DoladujKonto([FromBody] DoladujSaldo request)
     {
+        var id = User.IdKonta();
         if (!KwotaValidator.PoprawnaKwota(request.Kwota))
             return BadRequest(new { error = "Kwota musi być dodatnia, mieć najwyżej 2 miejsca po przecinku." });
 
@@ -110,9 +87,10 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
 
 
     // Pobiera przelewy wysłane i odebrane przez użytkownika.
-    [HttpGet("{id:long}/historia-przelewow")]
-    public async Task<IActionResult> PobierzHistoriePrzelewow(long id)
+    [HttpGet("me/historia-przelewow")]
+    public async Task<IActionResult> PobierzHistoriePrzelewow()
     {
+        var id = User.IdKonta();
         if (!await db.Konta.AnyAsync(k => k.Id == id))
             return NotFound(new { error = "Konto nie istnieje." });
 
@@ -140,9 +118,10 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
 
 
     // Pobiera historię wymiany walut użytkownika.
-    [HttpGet("{id:long}/historia-przewalutowania")]
-    public async Task<IActionResult> PobierzHistoriePrzewalutowania(long id)
+    [HttpGet("me/historia-przewalutowania")]
+    public async Task<IActionResult> PobierzHistoriePrzewalutowania()
     {
+        var id = User.IdKonta();
         if (!await db.Konta.AnyAsync(k => k.Id == id))
             return NotFound(new { error = "Konto nie istnieje." });
 
@@ -160,18 +139,14 @@ public class KontaController(KantorDbContext db, NbpService nbp) : ControllerBas
 
 
     // Odświeża kursy NBP i wymienia PLN na walutę obcą lub odwrotnie.
-    [HttpPost("{id:long}/przewalutowanie")]
-    public async Task<IActionResult> PrzewalutujKonto(long id, [FromBody] PrzewalutujSaldo request,
+    [HttpPost("me/przewalutowanie")]
+    public async Task<IActionResult> PrzewalutujKonto([FromBody] PrzewalutujSaldo request,
         CancellationToken cancellationToken)
     {
+        var id = User.IdKonta();
         var waluta = request.Waluta?.Trim().ToUpperInvariant();
 
         var typ = request.TypTransakcji?.Trim().ToUpperInvariant();
-
-        if (id <= 0)
-        {
-            return BadRequest(new { error = "Podaj konto na którym ma zostać wykonanie przewalutowania" });
-        }
 
         if (!KwotaValidator.PoprawnaKwota(request.Kwota))
         {

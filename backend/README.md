@@ -17,7 +17,7 @@ Adresy endpointów i dane żądań pozostają takie same.
 ```bash
 cd backend
 dotnet build Kantor.slnx
-dotnet run --project src/Kantor.Api   # http://localhost:5171/health
+dotnet run --project src/Kantor.Api   # http://localhost:5171/test
 ```
 
 OpenAPI (Development): `http://localhost:5171/openapi/v1.json`.
@@ -28,15 +28,17 @@ Endpointy można testować w Postmanie. Konfiguracja bazy i User Secrets jest op
 
 | Metoda | Adres | Działanie |
 |---|---|---|
-| GET | `/konta/{id}/saldo` | Salda we wszystkich walutach: `{ id, salda: [{ waluta, nazwa, saldo }] }`, PLN pierwszy, brak środków = `0`. |
-| POST | `/konta` | Dodanie użytkownika z zerowymi saldami: `login`, `haslo`, `imie`, `nazwisko`. |
-| POST | `/konta/{id}/doladowanie` | Dodanie `kwota` do salda PLN. |
-| GET | `/konta/{id}/historia-przelewow` | Przelewy wysłane i odebrane, od najnowszych, z polami `nazwaNadawcy` i `nazwaOdbiorcy` (imię i nazwisko). |
-| GET | `/konta/{id}/historia-przewalutowania` | Przewalutowania, od najnowszych. |
+| POST | `/auth/register` | Rejestracja: `login`, `haslo`, `imie`, `nazwisko`; zwraca `201`. Publiczny. |
+| POST | `/auth/login` | Logowanie: `login`, `haslo`; zwraca `{ token, wygasa }` (JWT ważny 60 min). Publiczny. |
+| GET | `/konta/me` | Profil: `{ id, login, imie, nazwisko, salda }` (salda w formacie jak `/konta/me/saldo`). |
+| GET | `/konta/me/saldo` | Salda we wszystkich walutach: `{ id, salda: [{ waluta, nazwa, saldo }] }`, PLN pierwszy, brak środków = `0`. |
+| POST | `/konta/me/doladowanie` | Dodanie `kwota` do salda PLN. |
+| GET | `/konta/me/historia-przelewow` | Przelewy wysłane i odebrane, od najnowszych, z polami `nazwaNadawcy` i `nazwaOdbiorcy` (imię i nazwisko). |
+| GET | `/konta/me/historia-przewalutowania` | Przewalutowania, od najnowszych. |
 | GET | `/kursy` | Odświeża wszystkie waluty z `waluty` z tabeli C NBP i zwraca aktualne kursy z bazy. |
 | GET | `/kursy/historyczne` | Uzupełnia ostatnie 7 dni z tabeli A NBP i zwraca całą historię z bazy. |
-| POST | `/przelewy` | Procedura `przelew`: `idNadawcy`, `idOdbiorcy`, `kwota`, `waluta` (dowolna z tabeli `waluty`). |
-| POST | `/konta/{id}/przewalutowanie` | Procedura `przewalutowanie`: `waluta` (z tabeli `waluty`, bez PLN), `kwota`, `typTransakcji`. |
+| POST | `/przelewy` | Procedura `przelew`: nadawca z tokena, `loginOdbiorcy`, `kwota`, `waluta` (dowolna z tabeli `waluty`). Nieznany odbiorca → `404`, przelew do siebie → `400`. |
+| POST | `/konta/me/przewalutowanie` | Procedura `przewalutowanie`: `waluta` (z tabeli `waluty`, bez PLN), `kwota`, `typTransakcji`. |
 
 Kwoty muszą być dodatnie i mieć najwyżej dwa miejsca po przecinku.
 Przy przewalutowaniu `kwota` zawsze oznacza ilość waluty obcej. Typ transakcji jest z perspektywy użytkownika: `ZAKUP` oznacza zakup waluty za PLN po `kurs_sprzedazy` kantoru, a `SPRZEDAZ` oznacza sprzedaż waluty i otrzymanie PLN po `kurs_zakupu` kantoru.
@@ -49,6 +51,8 @@ Błąd pobierania z NBP zwraca `502`, przekroczenie czasu oczekiwania — `504`,
 Błędy walidacji i komunikaty procedur (`P0001`) zwracają `400`, nieistniejące konto przy odczycie lub doładowaniu — `404`, zajęty login (`23505`) — `409` z komunikatem `Ten login jest już zajęty.`, a utworzenie konta — `201`.
 Pozostałe błędy PostgreSQL obsługiwane przy dodawaniu konta, doładowaniu, przelewie i przewalutowaniu zwracają `500` z komunikatem `Błąd bazy danych.`.
 Hasło nowego użytkownika jest zapisywane jako hash ASP.NET Core Identity i nie jest zwracane w odpowiedziach.
-Endpointy na tym etapie nie mają uwierzytelniania: konto wskazuje się przez ID.
+Uwierzytelnianie: JWT (HMAC-SHA256) podpisany kluczem `Jwt:Key` (User Secrets lub zmienna `Jwt__Key`, min. 32 znaki; bez niego API nie startuje). Token ma claim `sub` = id konta i `unique_name` = login.
+`/konta/*` i `/przelewy` wymagają nagłówka `Authorization: Bearer <token>` (bez niego `401`); konto jest zawsze brane z tokena, nie z adresu. Publiczne są `/auth/*`, `/kursy*`, `/test` i `/testdb`.
+Rejestracja: login 3–100 znaków `[a-zA-Z0-9._-]`, hasło min. 8 znaków, imię i nazwisko niepuste do 100 znaków, spacje obcinane; błędy → `400`. Zły login lub hasło przy logowaniu → ten sam `401` `Nieprawidłowy login lub hasło.`.
 
 Nowe projekty (np. testy z `task_020`) dodajemy do `src/` lub `tests/` i rejestrujemy: `dotnet sln Kantor.slnx add <ścieżka.csproj>`.

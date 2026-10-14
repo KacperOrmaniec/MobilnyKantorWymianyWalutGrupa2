@@ -35,12 +35,12 @@ No tests exist yet (task_020). New .NET projects go into `src/` or `tests/` and 
 
 ## Secrets
 
-- DB credentials go in `.env` (gitignored) for Docker and in **User Secrets** (`ConnectionStrings:KantorDb`) for the API. Never put them in `appsettings*.json`.
+- DB credentials go in `.env` (gitignored) for Docker and in **User Secrets** (`ConnectionStrings:KantorDb`, `Jwt:Key`) for the API. Never put them in `appsettings*.json`.
 - Requirement: no plaintext credentials in the DB or the repo.
 
 ## Current state / known gaps (as of 2026-10-14)
 
-- **No auth yet**: there is no JWT and no login endpoint, and accounts are addressed by `{id}` in the URL (task_012/013 are open). Requirements need registration + login + authorization.
+- Auth done (B01/B02/B09/B10): `POST /auth/register`, `POST /auth/login` → JWT (`sub` = account id, 60 min, HMAC-SHA256, key `Jwt:Key` in User Secrets / `Jwt__Key` env, min. 32 chars or the API won't start). `[Authorize]` on `KontaController` and `PrzelewyController`; the account id always comes from the token via `User.IdKonta()` (`Controllers/AuthController.cs`), routes are `/konta/me/...`. Transfers take `loginOdbiorcy`. Public: `/auth/*`, `/kursy*`, `/test`, `/testdb`.
 - `schema.sql` seeds users `test` / `test2` with **plaintext** password `test123`. These won't verify against `PasswordHasher` and they violate the no-plaintext requirement.
 - `backend/README.md` mentions `/health`, but the actual health endpoints are `GET /test` and `GET /testdb` (`StatusController`). CORS is not configured.
 - Mobile is template + tab layout only (`index`, `profile`, `exchange` screens WIP). There is no API client yet. `app.json` references `./assets/...` images, but `mobile/assets/` is not in the repo.
