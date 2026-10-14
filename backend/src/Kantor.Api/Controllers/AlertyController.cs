@@ -38,14 +38,7 @@ public class AlertyController(KantorDbContext db) : ControllerBase
 
         var alert = new AlertKursowy { IdKonta = id, Waluta = waluta, Typ = typ, Prog = request.Prog };
         db.AlertyKursowe.Add(alert);
-        try
-        {
-            await db.SaveChangesAsync();
-        }
-        catch (DbUpdateException)
-        {
-            return StatusCode(500, new { error = "Błąd bazy danych." });
-        }
+        await db.SaveChangesAsync();
 
         return Created("/konta/me/alerty", await Widok(id, alert.Id).FirstAsync());
     }

@@ -100,7 +100,8 @@ W nawiasie odpowiednik w `.backlog/tasks.yaml`, jeśli istnieje.
 
 ## P2: jakość
 
-### B14. Jedno miejsce obsługi błędów
+### ✅ B14. Jedno miejsce obsługi błędów: zrobione
+- Zrobione: globalny `UseExceptionHandler` w `Program.cs` (502/504/400 `P0001`/500), `{ error }` także dla 401 (JwtBearer `OnChallenge`) i złego JSON-a (`InvalidModelStateResponseFactory`); komunikaty procedur mają już polskie znaki.
 - Bloki `catch` na `HttpRequestException`, `PostgresException` i `502`/`504` powtarzają się w każdym kontrolerze. Zastąpić je jednym `IExceptionHandler` lub `UseExceptionHandler`, co odchudzi kontrolery.
 - Komunikaty z procedur są bez polskich znaków (`Niewystarczajace saldo`). Poprawić, skoro trafiają prosto do użytkownika.
 

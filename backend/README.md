@@ -53,16 +53,19 @@ W odpowiedzi `/kursy` pola `kursZakupuPrzezKantor` i `kursSprzedazyPrzezKantor` 
 
 `/kursy/historyczne` przyjmuje opcjonalne parametry: `waluta` (kod z tabeli `waluty`, bez PLN; brak = wszystkie waluty), `od` i `do` (format `RRRR-MM-DD`). Bez dat zwraca ostatnie 7 dni (dziś minus 6 dni do dziś, według czasu w Polsce); samo `od` oznacza zakres do dziś, samo `do` — 7 dni kończące się tą datą. Walidacja (`400` z `{ error }`): poprawny format dat, `od <= do`, zakres najwyżej 93 dni (limit NBP), `do` nie w przyszłości, obsługiwana waluta. Przykład: `GET /kursy/historyczne?waluta=EUR&od=2026-09-01&do=2026-10-14`.
 Endpoint pobiera z NBP cały żądany zakres, zapisuje `mid` w `kurs_avg`, a datę publikacji w `data` (zapis według waluty i daty nie tworzy duplikatów), po czym zwraca z bazy tylko żądaną walutę i zakres, posortowane rosnąco po dacie, a w obrębie dnia po walucie. Dni bez notowań (weekendy, święta) nie są sztucznie uzupełniane; zakres bez notowań daje pustą listę.
-Błąd pobierania z NBP zwraca `502`, przekroczenie czasu oczekiwania — `504`, a obsługiwany błąd PostgreSQL — `500` z komunikatem `Błąd bazy danych.`.
 
-Błędy walidacji i komunikaty procedur (`P0001`) zwracają `400`, nieistniejące konto przy odczycie lub doładowaniu — `404`, zajęty login (`23505`) — `409` z komunikatem `Ten login jest już zajęty.`, a utworzenie konta — `201`.
-Pozostałe błędy PostgreSQL obsługiwane przy dodawaniu konta, doładowaniu, przelewie i przewalutowaniu zwracają `500` z komunikatem `Błąd bazy danych.`.
+Każdy błąd ma body `{ "error": "..." }` (JSON, komunikat po polsku, bez stack trace). Wyjątki mapuje jeden globalny handler (`UseExceptionHandler` w `Program.cs`):
+- błąd pobierania z NBP → `502` `Nie udało się pobrać kursów z NBP.`, przekroczenie czasu oczekiwania → `504` `Przekroczono czas oczekiwania na NBP.` (przy przewalutowaniu wymiana nie zostaje wykonana);
+- komunikat procedury (`P0001`) → `400` z treścią z bazy, np. `Niewystarczające saldo PLN`;
+- inny błąd PostgreSQL lub niedostępna baza → `500` `Błąd bazy danych.`; każdy inny wyjątek → `500` `Wewnętrzny błąd serwera.` (szczegóły tylko w logu).
+
+Kontrolery zwracają same: walidację → `400`, nieistniejące konto lub odbiorcę → `404`, zajęty login (`23505`) → `409` `Ten login jest już zajęty.`. Zły JSON, zły typ pola albo puste body → `400` `Nieprawidłowe dane żądania. Sprawdź format JSON i typy pól.`. Utworzenie konta → `201`.
 Alerty kursowe: typ jak przy przewalutowaniu. `ZAKUP` jest spełniony, gdy `kurs_sprzedazy <= prog`, a `SPRZEDAZ`, gdy `kurs_zakupu >= prog`. Spełnienie ustawia trigger w bazie przy każdej zmianie `aktualne_kursy_walut` (`/kursy`, przewalutowanie, odświeżanie w tle), a jeśli warunek jest spełniony już przy tworzeniu, alert od razu ma `spelniono`. Alert spełnia się tylko raz. `aktualnyKurs` to bieżący kurs odpowiedni dla typu (`null`, gdy kursu jeszcze nie pobrano).
 W `/transakcje` pole `rodzaj` to `PRZELEW_WYCHODZACY`, `PRZELEW_PRZYCHODZACY`, `ZAKUP`, `SPRZEDAZ` albo `DOLADOWANIE`. `kwota` to kwota w `walutaZrodlowa`, a `kwotaDocelowa` (tylko wymiany) to kwota w `walutaDocelowa`. `kurs` jest `null` poza wymianami, `kontrahent` (imię i nazwisko drugiej strony) tylko przy przelewach. `id` jest unikalne w obrębie rodzaju.
 
 Hasło nowego użytkownika jest zapisywane jako hash ASP.NET Core Identity i nie jest zwracane w odpowiedziach.
 Uwierzytelnianie: JWT (HMAC-SHA256) podpisany kluczem `Jwt:Key` (User Secrets lub zmienna `Jwt__Key`, min. 32 znaki; bez niego API nie startuje). Token ma claim `sub` = id konta i `unique_name` = login.
-`/konta/*` i `/przelewy` wymagają nagłówka `Authorization: Bearer <token>` (bez niego `401`); konto jest zawsze brane z tokena, nie z adresu. Publiczne są `/auth/*`, `/kursy*`, `/test` i `/testdb`.
+`/konta/*` i `/przelewy` wymagają nagłówka `Authorization: Bearer <token>` (brak, zły lub wygasły token → `401` `Brak lub nieprawidłowy token. Zaloguj się ponownie.`); konto jest zawsze brane z tokena, nie z adresu. Publiczne są `/auth/*`, `/kursy*`, `/test` i `/testdb`.
 Rejestracja: login 3–100 znaków `[a-zA-Z0-9._-]`, hasło min. 8 znaków, imię i nazwisko niepuste do 100 znaków, spacje obcinane; błędy → `400`. Zły login lub hasło przy logowaniu → ten sam `401` `Nieprawidłowy login lub hasło.`.
 
 ## Testy
