@@ -37,12 +37,12 @@ W nawiasie odpowiednik w `.backlog/tasks.yaml`, jeśli istnieje.
 - Id konta brać z tokena, nie z URL: `/konta/{id}/saldo` → `/konta/me/saldo`, a `idNadawcy` w przelewie znika z body.
 - **AC:** bez tokena jest `401`. Użytkownik A nie może odczytać ani zmienić danych B.
 
-### B03. Usunąć jawne hasła z seeda
+### ✅ B03. Usunąć jawne hasła z seeda: zrobione
 - Seed `test`/`test2` w `schema.sql` ma hasło `test123` jawnym tekstem, co łamie wymaganie z pkt 7. Do tego te konta i tak nie zalogują się przez `PasswordHasher`.
 - Opcje: wstawić gotowy hash Identity, wygenerowany raz, albo seedować konta z backendu przy starcie w Development.
 - **AC:** `SELECT haslo FROM konta` nie zwraca nigdzie jawnego tekstu. `test`/`test123` loguje się przez `/auth/login`.
 
-### B04. Historia doładowań
+### ✅ B04. Historia doładowań: zrobione
 - `POST /konta/{id}/doladowanie` zmienia saldo bez żadnego śladu. Wymaganie mówi o „rejestrowaniu wykonanych transakcji”.
 - Nowa tabela `historia_doladowan` (id, id_konta, kwota, `Timestamp`) i procedura `doladowanie`, która zmienia saldo i zapisuje historię atomowo, tak jak pozostałe.
 - **AC:** każde doładowanie ma wpis w historii. Błąd zapisu historii wycofuje zmianę salda.
@@ -60,7 +60,7 @@ W nawiasie odpowiednik w `.backlog/tasks.yaml`, jeśli istnieje.
 
 ## P1: ważne dla oceny
 
-### B07. Wspólna historia transakcji (task_019)
+### ✅ B07. Wspólna historia transakcji (task_019): zrobione (`/konta/{id}/transakcje`)
 - `GET /konta/me/transakcje` zwraca przelewy, wymiany i doładowania w jednej liście, posortowane po dacie.
 - Każdy wpis zawiera to, czego wymaga pkt 4: rodzaj operacji, walutę źródłową, walutę docelową, kwotę, kurs i datę.
 - Rodzaj wymiany (`ZAKUP`/`SPRZEDAZ`) da się wyliczyć z `Waluta_sprzedana = 'PLN'`. Opcjonalnie dodać kolumnę `typ`.
