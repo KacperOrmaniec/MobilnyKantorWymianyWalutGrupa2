@@ -27,7 +27,9 @@ Typ transakcji jest opisany z perspektywy użytkownika:
 ## Świeżość kursu
 
 - **Przed każdą wymianą** backend pobiera z NBP aktualne kursy wszystkich walut i zapisuje je w `aktualne_kursy_walut`. Dopiero potem wywołuje procedurę `przewalutowanie`. Wymiana zawsze używa najnowszego opublikowanego kursu.
-- `GET /kursy` również odświeża kursy przed zwróceniem ich z bazy.
+- **W tle** (`Services/OdswiezanieKursow.cs`) backend odświeża kursy z NBP od razu po starcie, a potem co 15 minut (`Kursy:OdswiezanieMinuty`). Błąd NBP jest tylko logowany (warning), w bazie zostają ostatnie znane kursy.
+- `GET /kursy` czyta kursy **tylko z bazy** (tryb „offline”): działa także, gdy NBP jest niedostępne. Każdy kurs ma `timestamp`, czyli czas ostatniej aktualizacji. NBP jest pytane tylko, gdy tabela kursów jest pusta, albo przy `?odswiez=true`.
+- Wymiana nadal **nie** korzysta z kursów odświeżanych w tle: zawsze pobiera świeży kurs z NBP (patrz wyżej).
 - NBP publikuje tabelę C raz dziennie w dni robocze. W weekendy i święta API zwraca ostatnią opublikowaną tabelę, więc wymiana działa po kursie z ostatniego dnia roboczego.
 - Odświeżenie jest atomowe: najpierw pobierane są kursy wszystkich walut, potem zapis idzie w jednej transakcji. Błąd NBP nie zostawi połowy kursów zaktualizowanych.
 
@@ -39,7 +41,7 @@ Typ transakcji jest opisany z perspektywy użytkownika:
 | NBP nie odpowiada w 15 s | wymiana **nie jest wykonywana**, `504` |
 | brak kursu waluty w bazie | procedura zgłasza `Brak kursu dla waluty …`, `400` |
 
-Świadomie nie używamy starego kursu z bazy, gdy NBP jest niedostępne. Dzięki temu użytkownik nie wymieni waluty po nieaktualnym kursie.
+Świadomie nie używamy starego kursu z bazy przy wymianie, gdy NBP jest niedostępne. Dzięki temu użytkownik nie wymieni waluty po nieaktualnym kursie. Sam podgląd kursów (`GET /kursy`) pokazuje wtedy ostatnie zapisane kursy z czasem aktualizacji. `502`/`504` zwraca tylko przy pustej tabeli kursów albo przy `?odswiez=true`.
 
 ## Zapis kursu w transakcji
 

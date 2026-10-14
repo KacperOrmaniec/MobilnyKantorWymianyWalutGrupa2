@@ -11,13 +11,14 @@ namespace Kantor.Api.Controllers;
 [Route("kursy")]
 public class KursyController(KantorDbContext db, NbpService nbp) : ControllerBase
 {
-    // Odświeża EUR i USD w NBP, a następnie zwraca kursy z bazy.
+    // Zwraca ostatnie kursy z bazy (odświeżane w tle); NBP pytamy tylko przy pustej tabeli lub ?odswiez=true.
     [HttpGet]
-    public async Task<IActionResult> PobierzKursy(CancellationToken cancellationToken)
+    public async Task<IActionResult> PobierzKursy([FromQuery] bool odswiez, CancellationToken cancellationToken)
     {
         try
         {
-            await nbp.AktualizujAktualneKursy(cancellationToken);
+            if (odswiez || !await db.AktualneKursyWaluts.AnyAsync(cancellationToken))
+                await nbp.AktualizujAktualneKursy(cancellationToken);
             var kursy = await db.AktualneKursyWaluts.AsNoTracking()
                 .OrderBy(k => k.Waluta)
                 .Select(k => new

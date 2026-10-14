@@ -50,6 +50,7 @@ Tests: `backend/tests/Kantor.Api.Tests` (xUnit). `KwotaValidator` unit tests alw
 - Backlog statuses in `.backlog/tasks.yaml` lag behind the code: most backend tasks still show `backlog` even though they are implemented.
 - Postman collections are in `postman/`.
 - Compose services have no `container_name` (containers are `<project>-db-1` etc.), so several stacks can run with `-p <name>`. The `api` container runs in Production (no OpenAPI) and listens on 8080 → host `${API_PORT:-5171}`. `JWT_KEY` is optional for compose itself (`db` starts without it); the `api` container refuses to start without a 32+ char key.
+- B18 done: `Services/OdswiezanieKursow.cs` (hosted service) refreshes table C at startup and every `Kursy:OdswiezanieMinuty` (default 15). `GET /kursy` reads only from the DB (calls NBP only if the table is empty or `?odswiez=true`). Exchange still refreshes from NBP first and fails on NBP errors. NBP base URL is configurable via `Nbp:Adres`.
 - `GET /kursy/historyczne` re-fetches the whole requested range from NBP on every call (no "only missing days" logic yet).
 
 ## Workflow

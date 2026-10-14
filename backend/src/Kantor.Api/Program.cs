@@ -17,9 +17,10 @@ public class Program
         builder.Services.AddOpenApi();
         builder.Services.AddHttpClient<NbpService>(client =>
         {
-            client.BaseAddress = new Uri("https://api.nbp.pl/api/");
+            client.BaseAddress = new Uri(builder.Configuration["Nbp:Adres"] ?? "https://api.nbp.pl/api/");
             client.Timeout = TimeSpan.FromSeconds(15);
         });
+        builder.Services.AddHostedService<OdswiezanieKursow>();
 
         builder.Services.AddDbContext<KantorDbContext>(options =>
             options.UseNpgsql(
