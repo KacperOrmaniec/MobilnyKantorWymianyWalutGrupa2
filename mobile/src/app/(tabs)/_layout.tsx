@@ -24,10 +24,11 @@ export default function TabLayout() {
           height: 60,
           borderRadius: 24,
           borderColor: theme.stroke,
-          backgroundColor: theme.backgroundElement,
+          backgroundColor: theme.elementDefault,
           borderTopWidth: 2,
           borderWidth: 2,
           paddingBottom: 0,
+          elevation: 0,
         },
 
         tabBarButton: (props) => (

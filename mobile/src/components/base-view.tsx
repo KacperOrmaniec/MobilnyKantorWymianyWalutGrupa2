@@ -15,14 +15,12 @@ export default function BaseView({ children, style, ...rest }: ViewProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
   },
   safeArea: {
     flex: 1,
     flexDirection: "column",
     paddingHorizontal: 17,
-    alignItems: "center",
     gap: 20,
-    paddingBottom: BottomTabInset + 16,
+    paddingBottom: BottomTabInset,
   },
 });
