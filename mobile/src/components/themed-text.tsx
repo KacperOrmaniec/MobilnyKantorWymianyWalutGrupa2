@@ -26,7 +26,7 @@ export function ThemedText({
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 48,
+    fontSize: 34,
     lineHeight: 52,
     fontWeight: 600,
   },

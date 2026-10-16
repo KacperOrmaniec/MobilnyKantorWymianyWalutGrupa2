@@ -17,9 +17,7 @@ export function CustomContainer({ style, children, ...otherProps }: ViewProps) {
 const styles = StyleSheet.create({
   base: {
     flex: 1,
-    padding: 10,
     borderWidth: 2,
     borderRadius: 25,
-    width: "100%",
   },
 });
