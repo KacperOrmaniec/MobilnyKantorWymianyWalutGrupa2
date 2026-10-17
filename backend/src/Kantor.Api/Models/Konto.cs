@@ -15,15 +15,13 @@ public partial class Konto
 
     public string Nazwisko { get; set; } = null!;
 
-    public decimal AktualneSaldoPln { get; set; }
-
-    public decimal AktualneSaldoEur { get; set; }
-
-    public decimal AktualneSaldoUsd { get; set; }
-
     public virtual ICollection<HistoriaPrzelewów> HistoriaPrzelewówIdNadawcyNavigations { get; set; } = new List<HistoriaPrzelewów>();
 
     public virtual ICollection<HistoriaPrzelewów> HistoriaPrzelewówIdOdbiorcyNavigations { get; set; } = new List<HistoriaPrzelewów>();
 
     public virtual ICollection<HistoriaPrzewalutowanium> HistoriaPrzewalutowania { get; set; } = new List<HistoriaPrzewalutowanium>();
+
+    public virtual ICollection<HistoriaDoladowan> HistoriaDoladowans { get; set; } = new List<HistoriaDoladowan>();
+
+    public virtual ICollection<Saldo> Salda { get; set; } = new List<Saldo>();
 }

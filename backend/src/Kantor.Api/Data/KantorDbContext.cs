@@ -14,6 +14,10 @@ public partial class KantorDbContext : DbContext
 
     public virtual DbSet<AktualneKursyWalut> AktualneKursyWaluts { get; set; }
 
+    public virtual DbSet<AlertKursowy> AlertyKursowe { get; set; }
+
+    public virtual DbSet<HistoriaDoladowan> HistoriaDoladowans { get; set; }
+
     public virtual DbSet<HistoriaPrzelewów> HistoriaPrzelewóws { get; set; }
 
     public virtual DbSet<HistoriaPrzewalutowanium> HistoriaPrzewalutowania { get; set; }
@@ -21,6 +25,10 @@ public partial class KantorDbContext : DbContext
     public virtual DbSet<HistoryczneKursyWalut> HistoryczneKursyWaluts { get; set; }
 
     public virtual DbSet<Konto> Konta { get; set; }
+
+    public virtual DbSet<Saldo> Salda { get; set; }
+
+    public virtual DbSet<Waluta> Waluty { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,6 +53,54 @@ public partial class KantorDbContext : DbContext
             entity.Property(e => e.Waluta)
                 .HasMaxLength(10)
                 .HasColumnName("waluta");
+        });
+
+        modelBuilder.Entity<AlertKursowy>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("alerty_kursowe_pkey");
+
+            entity.ToTable("alerty_kursowe");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.IdKonta).HasColumnName("id_konta");
+            entity.Property(e => e.KursSpelnienia)
+                .HasPrecision(18, 6)
+                .HasColumnName("kurs_spelnienia");
+            entity.Property(e => e.Prog)
+                .HasPrecision(18, 6)
+                .HasColumnName("prog");
+            entity.Property(e => e.Spelniono).HasColumnName("spelniono");
+            entity.Property(e => e.Typ)
+                .HasMaxLength(10)
+                .HasColumnName("typ");
+            entity.Property(e => e.Utworzono)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("utworzono");
+            entity.Property(e => e.Waluta)
+                .HasMaxLength(10)
+                .HasColumnName("waluta");
+        });
+
+        modelBuilder.Entity<HistoriaDoladowan>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("historia_doladowan_pkey");
+
+            entity.ToTable("historia_doladowan");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.IdKonta).HasColumnName("id_konta");
+            entity.Property(e => e.Kwota).HasPrecision(18, 2);
+            entity.Property(e => e.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.Waluta).HasMaxLength(10);
+
+            entity.HasOne(d => d.IdKontaNavigation).WithMany(p => p.HistoriaDoladowans)
+                .HasForeignKey(d => d.IdKonta)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("historia_doladowan_id_konta_fkey");
         });
 
         modelBuilder.Entity<HistoriaPrzelewów>(entity =>
@@ -137,21 +193,51 @@ public partial class KantorDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
-            entity.Property(e => e.AktualneSaldoEur)
-                .HasPrecision(18, 2)
-                .HasColumnName("Aktualne_Saldo_EUR");
-            entity.Property(e => e.AktualneSaldoPln)
-                .HasPrecision(18, 2)
-                .HasColumnName("Aktualne_Saldo_PLN");
-            entity.Property(e => e.AktualneSaldoUsd)
-                .HasPrecision(18, 2)
-                .HasColumnName("Aktualne_Saldo_USD");
             entity.Property(e => e.Haslo).HasColumnName("haslo");
             entity.Property(e => e.Imie).HasMaxLength(100);
             entity.Property(e => e.Login)
                 .HasMaxLength(100)
                 .HasColumnName("login");
             entity.Property(e => e.Nazwisko).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Saldo>(entity =>
+        {
+            entity.HasKey(e => new { e.IdKonta, e.Waluta }).HasName("salda_pkey");
+
+            entity.ToTable("salda");
+
+            entity.Property(e => e.IdKonta).HasColumnName("id_konta");
+            entity.Property(e => e.Kwota)
+                .HasPrecision(18, 2)
+                .HasColumnName("saldo");
+            entity.Property(e => e.Waluta)
+                .HasMaxLength(10)
+                .HasColumnName("waluta");
+
+            entity.HasOne(d => d.IdKontaNavigation).WithMany(p => p.Salda)
+                .HasForeignKey(d => d.IdKonta)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("salda_id_konta_fkey");
+
+            entity.HasOne(d => d.WalutaNavigation).WithMany(p => p.Salda)
+                .HasForeignKey(d => d.Waluta)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("salda_waluta_fkey");
+        });
+
+        modelBuilder.Entity<Waluta>(entity =>
+        {
+            entity.HasKey(e => e.Kod).HasName("waluty_pkey");
+
+            entity.ToTable("waluty");
+
+            entity.Property(e => e.Kod)
+                .HasMaxLength(10)
+                .HasColumnName("kod");
+            entity.Property(e => e.Nazwa)
+                .HasMaxLength(50)
+                .HasColumnName("nazwa");
         });
 
         OnModelCreatingPartial(modelBuilder);

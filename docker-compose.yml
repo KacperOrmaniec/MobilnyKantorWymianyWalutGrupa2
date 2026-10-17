@@ -1,7 +1,6 @@
 services:
   db:
     image: postgres:17
-    container_name: kantor-db
     restart: unless-stopped
     entrypoint: ["bash", "/opt/kantor-db/start-db.sh"]
     environment:
@@ -20,9 +19,21 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      ConnectionStrings__KantorDb: "Host=db;Port=5432;Database=${POSTGRES_DB:-kantor};Username=${POSTGRES_USER:-kantor};Password=${POSTGRES_PASSWORD:?Ustaw POSTGRES_PASSWORD w pliku .env}"
+      # Brak klucza nie blokuje samej bazy; API odmówi startu i zaloguje błąd.
+      Jwt__Key: ${JWT_KEY:-}
+    ports:
+      - "${API_PORT:-5171}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: kantor-pgadmin
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com

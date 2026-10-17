@@ -34,3 +34,6 @@ yarn-error.*
 !.vscode/extensions.json
 .DS_Store
 Thumbs.db
+
+# --- Lokalne worktree agentów ---
+.claude/worktrees/
