@@ -26,6 +26,7 @@ OpenAPI (Development): `http://localhost:5171/openapi/v1.json`.
 ## Endpointy
 
 Endpointy można testować w Postmanie. Konfiguracja bazy i User Secrets jest opisana w głównym [README](../README.md).
+Przykładowe odpowiedzi każdego endpointu (kody i pola JSON): [README → Odpowiedzi endpointów](../README.md#odpowiedzi-endpointów).
 
 | Metoda | Adres | Działanie |
 |---|---|---|
