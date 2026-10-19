@@ -29,6 +29,35 @@
       "response": []
     },
     {
+      "name": "wymuszone odświeżenie kursów z NBP",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5171/kursy?odswiez=true",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5171",
+          "path": [
+            "kursy"
+          ],
+          "query": [
+            {
+              "key": "odswiez",
+              "value": "true",
+              "description": "Opcjonalne: pobiera kursy z NBP zamiast zwracać tylko te z bazy."
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "historyczne kursy z ostatnich 7 dni",
       "request": {
         "method": "GET",
@@ -46,6 +75,46 @@
           "path": [
             "kursy",
             "historyczne"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "historyczne kursy EUR z zakresu dat",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5171/kursy/historyczne?waluta=EUR&od=2026-09-01&do=2026-10-14",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "5171",
+          "path": [
+            "kursy",
+            "historyczne"
+          ],
+          "query": [
+            {
+              "key": "waluta",
+              "value": "EUR",
+              "description": "Kod waluty bez PLN; brak = wszystkie waluty."
+            },
+            {
+              "key": "od",
+              "value": "2026-09-01",
+              "description": "RRRR-MM-DD; zakres najwyżej 93 dni."
+            },
+            {
+              "key": "do",
+              "value": "2026-10-14",
+              "description": "RRRR-MM-DD; nie w przyszłości."
+            }
           ]
         }
       },
