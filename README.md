@@ -215,25 +215,25 @@ Adres bazowy: `http://localhost:5171`. Body dla POST wysyłaj jako JSON.
 Endpointy z „tak” w kolumnie Token wymagają nagłówka `Authorization: Bearer <token>`; bez niego zwracają `401`.
 Konto zawsze wynika z tokena (`/konta/me/...`), więc użytkownik ma dostęp tylko do własnych danych.
 
-| Metoda | Adres | Token | Co robi | Body (JSON) |
-| ------ | ----- | ----- | ------- | ----------- |
-| GET | `/test` | — | Sprawdza działanie API. | — |
-| GET | `/testdb` | — | Sprawdza połączenie z bazą. | — |
-| POST | `/auth/register` | — | Rejestruje użytkownika (`201`). | `{"login":"jan","haslo":"tajnehaslo","imie":"Jan","nazwisko":"Kowalski"}` |
-| POST | `/auth/login` | — | Loguje i zwraca token JWT. | `{"login":"jan","haslo":"tajnehaslo"}` |
-| GET | `/konta/me` | tak | Profil: id, login, imię, nazwisko i salda. | — |
-| GET | `/konta/me/saldo` | tak | Pobiera salda we wszystkich walutach. | — |
-| POST | `/konta/me/doladowanie` | tak | Doładowuje saldo PLN i zapisuje historię. | `{"kwota":100}` |
-| GET | `/konta/me/historia-przelewow` | tak | Pobiera przelewy z nazwami nadawcy i odbiorcy. | — |
-| GET | `/konta/me/historia-przewalutowania` | tak | Pobiera historię wymiany walut. | — |
-| GET | `/konta/me/transakcje` | tak | Wspólna historia: przelewy, wymiany, doładowania. | — |
-| GET | `/kursy?odswiez=true` | — | Zwraca ostatnie kursy z bazy (odświeżane w tle co 15 min, działa też przy awarii NBP). `odswiez=true` (opcjonalne) wymusza pobranie z NBP. | — |
-| GET | `/kursy/historyczne?waluta=EUR&od=2026-09-01&do=2026-10-14` | — | Kursy średnie NBP z zakresu dat (parametry opcjonalne, domyślnie ostatnie 7 dni i wszystkie waluty), rosnąco po dacie. | — |
-| POST | `/przelewy` | tak | Wykonuje przelew z konta zalogowanego do konta o podanym loginie. | `{"loginOdbiorcy":"anna","kwota":50,"waluta":"PLN"}` |
-| POST | `/konta/me/przewalutowanie` | tak | Wymienia PLN na walutę obcą lub odwrotnie. | `{"waluta":"EUR","kwota":10,"typTransakcji":"ZAKUP"}` |
-| POST | `/konta/me/alerty` | tak | Tworzy alert kursowy (`201`); `ZAKUP`: kurs sprzedaży ≤ `prog`, `SPRZEDAZ`: kurs zakupu ≥ `prog`. | `{"waluta":"EUR","typ":"ZAKUP","prog":4.25}` |
-| GET | `/konta/me/alerty` | tak | Lista alertów od najnowszych; spełnione mają `spelniono` i `kursSpelnienia`. | — |
-| DELETE | `/konta/me/alerty/{id}` | tak | Usuwa własny alert (`204`, cudzy lub nieistniejący → `404`). | — |
+| Metoda | Adres                                                       | Token | Co robi                                                                                                                                    | Body (JSON)                                                               |
+| ------ | ----------------------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| GET    | `/test`                                                     | —     | Sprawdza działanie API.                                                                                                                    | —                                                                         |
+| GET    | `/testdb`                                                   | —     | Sprawdza połączenie z bazą.                                                                                                                | —                                                                         |
+| POST   | `/auth/register`                                            | —     | Rejestruje użytkownika (`201`).                                                                                                            | `{"login":"jan","haslo":"tajnehaslo","imie":"Jan","nazwisko":"Kowalski"}` |
+| POST   | `/auth/login`                                               | —     | Loguje i zwraca token JWT.                                                                                                                 | `{"login":"jan","haslo":"tajnehaslo"}`                                    |
+| GET    | `/konta/me`                                                 | tak   | Profil: id, login, imię, nazwisko i salda.                                                                                                 | —                                                                         |
+| GET    | `/konta/me/saldo`                                           | tak   | Pobiera salda we wszystkich walutach.                                                                                                      | —                                                                         |
+| POST   | `/konta/me/doladowanie`                                     | tak   | Doładowuje saldo PLN i zapisuje historię.                                                                                                  | `{"kwota":100}`                                                           |
+| GET    | `/konta/me/historia-przelewow`                              | tak   | Pobiera przelewy z nazwami nadawcy i odbiorcy.                                                                                             | —                                                                         |
+| GET    | `/konta/me/historia-przewalutowania`                        | tak   | Pobiera historię wymiany walut.                                                                                                            | —                                                                         |
+| GET    | `/konta/me/transakcje`                                      | tak   | Wspólna historia: przelewy, wymiany, doładowania.                                                                                          | —                                                                         |
+| GET    | `/kursy?odswiez=true`                                       | —     | Zwraca ostatnie kursy z bazy (odświeżane w tle co 15 min, działa też przy awarii NBP). `odswiez=true` (opcjonalne) wymusza pobranie z NBP. | —                                                                         |
+| GET    | `/kursy/historyczne?waluta=EUR&od=2026-09-01&do=2026-10-14` | —     | Kursy średnie NBP z zakresu dat (parametry opcjonalne, domyślnie ostatnie 7 dni i wszystkie waluty), rosnąco po dacie.                     | —                                                                         |
+| POST   | `/przelewy`                                                 | tak   | Wykonuje przelew z konta zalogowanego do konta o podanym loginie.                                                                          | `{"loginOdbiorcy":"anna","kwota":50,"waluta":"PLN"}`                      |
+| POST   | `/konta/me/przewalutowanie`                                 | tak   | Wymienia PLN na walutę obcą lub odwrotnie.                                                                                                 | `{"waluta":"EUR","kwota":10,"typTransakcji":"ZAKUP"}`                     |
+| POST   | `/konta/me/alerty`                                          | tak   | Tworzy alert kursowy (`201`); `ZAKUP`: kurs sprzedaży ≤ `prog`, `SPRZEDAZ`: kurs zakupu ≥ `prog`.                                          | `{"waluta":"EUR","typ":"ZAKUP","prog":4.25}`                              |
+| GET    | `/konta/me/alerty`                                          | tak   | Lista alertów od najnowszych; spełnione mają `spelniono` i `kursSpelnienia`.                                                               | —                                                                         |
+| DELETE | `/konta/me/alerty/{id}`                                     | tak   | Usuwa własny alert (`204`, cudzy lub nieistniejący → `404`).                                                                               | —                                                                         |
 
 Rejestracja: login 3–100 znaków (litery bez polskich znaków, cyfry, `.`, `_`, `-`), hasło min. 8 znaków, imię i nazwisko niepuste (maks. 100 znaków). Spacje na początku i końcu są obcinane.
 Zły login i złe hasło przy logowaniu dają ten sam `401` z komunikatem `Nieprawidłowy login lub hasło.`.
@@ -242,18 +242,51 @@ Obsługiwane waluty są w tabeli `waluty` (PLN, EUR, USD, CHF, GBP). Przelew obs
 
 Konta testowe z seeda: `test` i `test2`, hasło `test123` (w bazie zapisany jest tylko hash).
 
+### Odpowiedzi endpointów
+
+Odpowiedzi są w JSON, nazwy pól w camelCase. Daty z czasem są w UTC (np. `"2026-10-14T10:15:00Z"`), same daty jako `"RRRR-MM-DD"`. Kwoty mają 2 miejsca po przecinku, kursy i progi do 6. Błędy opisuje sekcja [Format błędów](#format-błędów).
+
+| Metoda i adres                           | Kod   | Zwraca                                                                                                                                                                                         |
+| ---------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET `/test`                              | `200` | `{"status":"ok"}`                                                                                                                                                                              |
+| GET `/testdb`                            | `200` | `{"connected":true}` (`false`, gdy baza jest niedostępna)                                                                                                                                      |
+| POST `/auth/register`                    | `201` | Nowe konto bez hasła: `{"id":3,"login":"jan","imie":"Jan","nazwisko":"Kowalski"}`                                                                                                              |
+| POST `/auth/login`                       | `200` | `{"token":"eyJhbGciOi...","wygasa":"2026-10-14T11:15:00Z"}`                                                                                                                                    |
+| GET `/konta/me`                          | `200` | `{"id":1,"login":"test","imie":"Jan","nazwisko":"Testowy","salda":[...]}` (`salda` jak w `/konta/me/saldo`)                                                                                    |
+| GET `/konta/me/saldo`                    | `200` | `{"id":1,"salda":[{"waluta":"PLN","nazwa":"złoty polski","saldo":1000.00},{"waluta":"EUR","nazwa":"euro","saldo":0}]}` — wszystkie waluty z tabeli `waluty`, PLN pierwszy, potem alfabetycznie |
+| POST `/konta/me/doladowanie`             | `200` | `{"message":"Saldo PLN zostało doładowane."}`                                                                                                                                                  |
+| GET `/konta/me/historia-przelewow`       | `200` | Lista od najnowszych: `[{"id":7,"timestamp":"...","idNadawcy":1,"nazwaNadawcy":"Jan Testowy","idOdbiorcy":2,"nazwaOdbiorcy":"Anna Testowa","kwota":50.00,"waluta":"PLN"}]`                     |
+| GET `/konta/me/historia-przewalutowania` | `200` | Lista od najnowszych: `[{"id":4,"timestamp":"...","idKonta":1,"kursPrzewalutowania":4.3120,"walutaSprzedana":"PLN","walutaKupiona":"EUR","kwotaSprzedana":43.12,"kwotaKupiona":10.00}]`        |
+| GET `/konta/me/transakcje`               | `200` | Lista od najnowszych: `[{"id":4,"rodzaj":"ZAKUP","walutaZrodlowa":"PLN","walutaDocelowa":"EUR","kwota":43.12,"kwotaDocelowa":10.00,"kurs":4.3120,"data":"...","kontrahent":null}]`             |
+| GET `/kursy`                             | `200` | Lista po kodzie waluty: `[{"id":1,"timestamp":"...","waluta":"EUR","kursZakupuPrzezKantor":4.2150,"kursSprzedazyPrzezKantor":4.3002}]`                                                         |
+| GET `/kursy/historyczne`                 | `200` | Lista rosnąco po dacie, potem po walucie: `[{"id":12,"waluta":"EUR","kursAvg":4.2581,"data":"2026-10-13"}]`; brak notowań = `[]`                                                               |
+| POST `/przelewy`                         | `200` | `{"message":"Przelew wykonany."}`                                                                                                                                                              |
+| POST `/konta/me/przewalutowanie`         | `200` | `{"message":"Przewalutowanie wykonane."}`                                                                                                                                                      |
+| POST `/konta/me/alerty`                  | `201` | Utworzony alert, ten sam kształt co element listy z `GET /konta/me/alerty`                                                                                                                     |
+| GET `/konta/me/alerty`                   | `200` | Lista od najnowszych: `[{"id":2,"waluta":"EUR","typ":"ZAKUP","prog":4.25,"utworzono":"...","spelniono":null,"kursSpelnienia":null,"aktualnyKurs":4.3002}]`                                     |
+| DELETE `/konta/me/alerty/{id}`           | `204` | Puste body                                                                                                                                                                                     |
+
+Szczegóły pól:
+
+- `/kursy`: `kursZakupuPrzezKantor` to kurs, po którym kantor kupuje walutę od użytkownika (używany przy `SPRZEDAZ`), a `kursSprzedazyPrzezKantor` to kurs, po którym ją sprzedaje (przy `ZAKUP`). `timestamp` to czas ostatniego odświeżenia z NBP.
+- `/kursy/historyczne`: `kursAvg` to kurs średni (`mid`) z tabeli A NBP, `data` to data publikacji. Weekendy i święta nie są uzupełniane.
+- `/konta/me/historia-przewalutowania`: przy `ZAKUP` `walutaSprzedana` to PLN, przy `SPRZEDAZ` waluta obca.
+- `/konta/me/transakcje`: `rodzaj` to `PRZELEW_WYCHODZACY`, `PRZELEW_PRZYCHODZACY`, `ZAKUP`, `SPRZEDAZ` lub `DOLADOWANIE`. `kwota` jest w `walutaZrodlowa`, `kwotaDocelowa` w `walutaDocelowa` (tylko wymiany, inaczej `null`). `kurs` tylko przy wymianach, `kontrahent` (imię i nazwisko drugiej strony) tylko przy przelewach. `id` jest unikalne tylko w obrębie jednego rodzaju.
+- `/konta/me/alerty`: `spelniono` (czas) i `kursSpelnienia` są `null`, dopóki alert się nie spełni. `aktualnyKurs` to bieżący kurs właściwy dla typu (`ZAKUP`: sprzedaży, `SPRZEDAZ`: zakupu) albo `null`, jeśli kursów jeszcze nie pobrano.
+- Operacje zmieniające saldo (`doladowanie`, `przelewy`, `przewalutowanie`) zwracają tylko komunikat; nowe salda trzeba pobrać z `GET /konta/me/saldo`.
+
 ### Format błędów
 
 Każdy błąd ma postać `{ "error": "komunikat po polsku" }`, więc w aplikacji wystarczy wyświetlić pole `error`.
 
-| Kod | Kiedy |
-| --- | ----- |
-| `400` | Błędne dane (walidacja, zły JSON) albo odmowa procedury, np. `Niewystarczające saldo PLN`. |
-| `401` | Brak, zły lub wygasły token (`Brak lub nieprawidłowy token. Zaloguj się ponownie.`) albo zły login lub hasło przy logowaniu. |
-| `404` | Nie istnieje, np. odbiorca przelewu lub alert. |
-| `409` | Login jest już zajęty. |
-| `500` | Błąd bazy danych lub serwera. |
-| `502` / `504` | NBP zwróciło błąd / nie odpowiedziało; wymiana waluty nie jest wtedy wykonywana. |
+| Kod           | Kiedy                                                                                                                        |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `400`         | Błędne dane (walidacja, zły JSON) albo odmowa procedury, np. `Niewystarczające saldo PLN`.                                   |
+| `401`         | Brak, zły lub wygasły token (`Brak lub nieprawidłowy token. Zaloguj się ponownie.`) albo zły login lub hasło przy logowaniu. |
+| `404`         | Nie istnieje, np. odbiorca przelewu lub alert.                                                                               |
+| `409`         | Login jest już zajęty.                                                                                                       |
+| `500`         | Błąd bazy danych lub serwera.                                                                                                |
+| `502` / `504` | NBP zwróciło błąd / nie odpowiedziało; wymiana waluty nie jest wtedy wykonywana.                                             |
 
 ## Podejście Database First
 
@@ -265,26 +298,26 @@ Definicje znajdują się w [backend/database/schema.sql](backend/database/schema
 
 ### Tabele
 
-| Tabela                     | Co przechowuje                                                    |
-| -------------------------- | ----------------------------------------------------------------- |
-| `konta`                    | Dane użytkowników: login, hash hasła, imię i nazwisko.            |
-| `waluty`                   | Słownik obsługiwanych walut (kod, nazwa).                         |
-| `salda`                    | Saldo konta w danej walucie; brak wiersza oznacza saldo 0.        |
-| `historia_przelewów`       | Przelewy między kontami: nadawcę, odbiorcę, kwotę, walutę i datę. |
-| `historia_przewalutowania` | Wymiany walut: konto, waluty, kwoty, zastosowany kurs i datę.     |
-| `historia_doladowan`       | Doładowania konta: konto, kwotę, walutę (PLN) i datę.             |
-| `aktualne_kursy_walut`     | Bieżące kursy kupna i sprzedaży oraz czas aktualizacji.           |
-| `historyczne_kursy_walut`  | Średnie kursy walut dla poszczególnych dni.                       |
+| Tabela                     | Co przechowuje                                                      |
+| -------------------------- | ------------------------------------------------------------------- |
+| `konta`                    | Dane użytkowników: login, hash hasła, imię i nazwisko.              |
+| `waluty`                   | Słownik obsługiwanych walut (kod, nazwa).                           |
+| `salda`                    | Saldo konta w danej walucie; brak wiersza oznacza saldo 0.          |
+| `historia_przelewów`       | Przelewy między kontami: nadawcę, odbiorcę, kwotę, walutę i datę.   |
+| `historia_przewalutowania` | Wymiany walut: konto, waluty, kwoty, zastosowany kurs i datę.       |
+| `historia_doladowan`       | Doładowania konta: konto, kwotę, walutę (PLN) i datę.               |
+| `aktualne_kursy_walut`     | Bieżące kursy kupna i sprzedaży oraz czas aktualizacji.             |
+| `historyczne_kursy_walut`  | Średnie kursy walut dla poszczególnych dni.                         |
 | `alerty_kursowe`           | Alerty kursowe użytkowników: waluta, typ, próg i moment spełnienia. |
 
 ### Procedury
 
-| Procedura                       | Co robi                                                                                                                   |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Procedura                       | Co robi                                                                                                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `przelew`                       | Przenosi środki między dwoma kontami w dowolnej walucie z `waluty` i zapisuje historię. Sprawdza poprawność danych i dostępne saldo. |
-| `przewalutowanie`               | Wymienia PLN na walutę obcą lub odwrotnie, aktualizuje salda i zapisuje historię wraz z kursem.                               |
-| `doladowanie`                   | Dodaje kwotę do salda PLN konta i zapisuje wpis w `historia_doladowan`.                                                   |
-| `zmiana_aktualnego_kursu_walut` | Dodaje lub aktualizuje kurs kupna i sprzedaży podanej waluty oraz zwraca czas aktualizacji.                               |
+| `przewalutowanie`               | Wymienia PLN na walutę obcą lub odwrotnie, aktualizuje salda i zapisuje historię wraz z kursem.                                      |
+| `doladowanie`                   | Dodaje kwotę do salda PLN konta i zapisuje wpis w `historia_doladowan`.                                                              |
+| `zmiana_aktualnego_kursu_walut` | Dodaje lub aktualizuje kurs kupna i sprzedaży podanej waluty oraz zwraca czas aktualizacji.                                          |
 
 Triggery `sprawdz_alerty_kursowe` (po każdej zmianie w `aktualne_kursy_walut`) i `sprawdz_nowy_alert` (przy tworzeniu alertu) ustawiają `spelniono` i `kurs_spelnienia` alertów, których próg został osiągnięty. Alert spełnia się tylko raz.
 
