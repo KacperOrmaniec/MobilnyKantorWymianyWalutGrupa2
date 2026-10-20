@@ -4,16 +4,18 @@ export const Colors = {
     background: "#EFEEED",
     elementDefault: "#DBDBDB",
     elementSelected: "#E0E1E6",
-    textSecondary: "#60646C",
+    textSecondary: "#9c9c9c",
     stroke: "#C9C9C9",
+    textInputStroke: "#acacac",
   },
   dark: {
     text: "#ffffff",
     background: "#0A0A0A",
     elementDefault: "#1A1A1A",
     elementSelected: "#2E3135",
-    textSecondary: "#8F8F8F",
+    textSecondary: "#7a7a7a",
     stroke: "#303030",
+    textInputStroke: "#4A4A4A",
   },
 } as const;
 

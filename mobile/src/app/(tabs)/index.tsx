@@ -4,6 +4,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import { View } from "react-native";
 import { CustomButton } from "@/components/ui/custom-button";
 import { WalletCurrencyRow } from "@/components/ui/wallet-currency-row";
+import { CustomInputField } from "@/components/ui/custom-input-field";
 
 export default function HomeScreen() {
   return (
