@@ -1,6 +1,6 @@
 import { StyleSheet, ViewProps } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ThemedView } from "@/components/themed-view";
+import { ThemedView } from "@/components/ui/themed-view";
 
 import { BottomTabInset } from "@/constants/theme";
 

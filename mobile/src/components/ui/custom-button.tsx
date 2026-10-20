@@ -1,5 +1,5 @@
 import { Pressable } from "react-native";
-import { ThemedText } from "@/components/themed-text";
+import { ThemedText } from "@/components/ui/themed-text";
 import { useTheme } from "@/hooks/use-theme";
 
 export function CustomButton({
