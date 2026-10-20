@@ -27,7 +27,7 @@ export default function RegisterScreen() {
           onChangeText={setName}
           submitBehavior="submit"
           returnKeyType="next"
-          onSubmitEditing={() => passwordRef.current?.focus()}
+          onSubmitEditing={() => surnameRef.current?.focus()}
         ></CustomInputField>
       </View>
       <View>
@@ -40,7 +40,7 @@ export default function RegisterScreen() {
           onChangeText={setSurname}
           submitBehavior="submit"
           returnKeyType="next"
-          onSubmitEditing={() => passwordRef.current?.focus()}
+          onSubmitEditing={() => loginRef.current?.focus()}
         ></CustomInputField>
       </View>
       <View>
