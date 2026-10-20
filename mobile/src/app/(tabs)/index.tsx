@@ -1,8 +1,10 @@
-import { CustomContainer } from "@/components/custom-container";
+import { CustomContainer } from "@/components/ui/custom-container";
 import BaseView from "@/components/base-view";
-import { ThemedText } from "@/components/themed-text";
+import { ThemedText } from "@/components/ui/themed-text";
 import { View } from "react-native";
-import { CustomButton } from "@/components/custom-button";
+import { CustomButton } from "@/components/ui/custom-button";
+import { WalletCurrencyRow } from "@/components/ui/wallet-currency-row";
+import { CustomInputField } from "@/components/ui/custom-input-field";
 
 export default function HomeScreen() {
   return (
@@ -11,7 +13,6 @@ export default function HomeScreen() {
         <CustomContainer
           style={{
             flex: 2,
-            justifyContent: "space-between",
             borderBottomWidth: 0,
             borderBottomLeftRadius: 0,
             borderBottomRightRadius: 0,
@@ -19,14 +20,17 @@ export default function HomeScreen() {
         >
           <View
             style={{
-              flexDirection: "column",
-              alignItems: "flex-start",
-              padding: 16,
+              padding: 8,
             }}
           >
             <ThemedText type="default">Stan portfela</ThemedText>
             <ThemedText type="title">1 234,56 PLN</ThemedText>
           </View>
+          <WalletCurrencyRow
+            currency="USD"
+            amount={100.0}
+            amountInMainCurrency={400.0}
+          ></WalletCurrencyRow>
         </CustomContainer>
         <View style={{ flexDirection: "row" }}>
           <CustomButton
@@ -62,7 +66,13 @@ export default function HomeScreen() {
             borderBottomRightRadius: 0,
           }}
         >
-          <ThemedText type="default">Ostatnie transakcje</ThemedText>
+          <View
+            style={{
+              padding: 2,
+            }}
+          >
+            <ThemedText type="default">Ostatnie transakcje</ThemedText>
+          </View>
         </CustomContainer>
         <CustomButton
           label="Zobacz więcej"

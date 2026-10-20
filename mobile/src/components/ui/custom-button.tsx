@@ -1,5 +1,5 @@
 import { Pressable } from "react-native";
-import { ThemedText } from "@/components/themed-text";
+import { ThemedText } from "@/components/ui/themed-text";
 import { useTheme } from "@/hooks/use-theme";
 
 export function CustomButton({
@@ -11,13 +11,16 @@ export function CustomButton({
   const theme = useTheme();
   return (
     <Pressable
+      onPress={onPress}
       style={[
         {
+          alignSelf: "center",
           backgroundColor: theme.elementDefault,
           alignItems: "center",
-          paddingVertical: 10,
+          justifyContent: "center",
+          height: 53,
           width: 150,
-          borderRadius: 25,
+          borderRadius: 14,
           borderColor: theme.stroke,
           borderWidth: 2,
         },

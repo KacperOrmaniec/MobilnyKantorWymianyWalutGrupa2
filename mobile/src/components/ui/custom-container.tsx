@@ -16,7 +16,10 @@ export function CustomContainer({ style, children, ...otherProps }: ViewProps) {
 }
 const styles = StyleSheet.create({
   base: {
+    padding: 12,
     flex: 1,
+    flexDirection: "column",
+    alignItems: "flex-start",
     borderWidth: 2,
     borderRadius: 25,
   },
