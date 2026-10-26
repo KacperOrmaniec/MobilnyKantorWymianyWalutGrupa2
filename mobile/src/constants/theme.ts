@@ -12,7 +12,7 @@ export const Colors = {
     text: "#ffffff",
     background: "#0A0A0A",
     elementDefault: "#1A1A1A",
-    elementSelected: "#2E3135",
+    elementSelected: "rgb(42, 45, 49)",
     textSecondary: "#7a7a7a",
     stroke: "#303030",
     textInputStroke: "#4A4A4A",

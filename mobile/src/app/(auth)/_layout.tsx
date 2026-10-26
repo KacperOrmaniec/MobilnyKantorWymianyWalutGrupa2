@@ -7,7 +7,11 @@ export default function AuthLayout() {
   return (
     <Stack
       screenOptions={{
-        contentStyle: { paddingHorizontal: 10 },
+        contentStyle: {
+          paddingTop: 70,
+          paddingHorizontal: 10,
+          backgroundColor: theme.background,
+        },
 
         headerShown: false,
         animation: "none",

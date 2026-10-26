@@ -36,6 +36,7 @@ export default function HomeScreen() {
           <CustomButton
             label="Wpłata"
             style={{
+              borderBottomLeftRadius: 25,
               borderTopRightRadius: 0,
               borderTopLeftRadius: 0,
               borderBottomRightRadius: 0,
@@ -49,6 +50,7 @@ export default function HomeScreen() {
               borderTopRightRadius: 0,
               borderTopLeftRadius: 0,
               borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 25,
               borderLeftWidth: 1,
               width: "50%",
             }}
@@ -79,7 +81,8 @@ export default function HomeScreen() {
           style={{
             borderTopRightRadius: 0,
             borderTopLeftRadius: 0,
-
+            borderBottomLeftRadius: 25,
+            borderBottomRightRadius: 25,
             width: "100%",
           }}
         />
