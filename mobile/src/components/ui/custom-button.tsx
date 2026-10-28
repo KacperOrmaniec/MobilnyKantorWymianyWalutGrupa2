@@ -12,10 +12,12 @@ export function CustomButton({
   return (
     <Pressable
       onPress={onPress}
-      style={[
+      style={({ pressed }) => [
         {
           alignSelf: "center",
-          backgroundColor: theme.elementDefault,
+          backgroundColor: pressed
+            ? theme.elementSelected
+            : theme.elementDefault,
           alignItems: "center",
           justifyContent: "center",
           height: 53,

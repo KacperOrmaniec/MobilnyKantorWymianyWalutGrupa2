@@ -3,8 +3,9 @@ import { DarkTheme, DefaultTheme, ThemeProvider, Stack } from "expo-router";
 import { useColorScheme, View } from "react-native";
 import { useTheme } from "@/hooks/use-theme";
 import { queryClient } from "@/lib/query-client";
+import { Image } from "expo-image";
 
-const isLoggedIn = false; // TODO: Replace with actual authentication logic
+const isLoggedIn = true; // TODO: Replace with actual authentication logic
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -16,8 +17,20 @@ export default function RootLayout() {
           screenOptions={{
             header: () => (
               <View
-                style={{ backgroundColor: theme.background, height: 130 }}
-              />
+                style={{
+                  backgroundColor: theme.background,
+                  height: 130,
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                }}
+              >
+                <Image
+                  source={require("@/assets/logo.svg")}
+                  contentFit="contain"
+                  style={{ width: 140, height: 50 }}
+                  tintColor={theme.text}
+                />
+              </View>
             ),
             headerShown: true,
           }}
