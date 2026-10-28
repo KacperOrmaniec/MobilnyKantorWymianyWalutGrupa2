@@ -5,10 +5,25 @@ import { CustomButton } from "@/components/ui/custom-button";
 import { TextInput, View } from "react-native";
 import { useRef, useState } from "react";
 import { router } from "expo-router";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api-client";
+import { useStore } from "@/hooks/use-store";
+import { LoginRequest, LoginResponse } from "@/lib/api-types";
+
 export default function LoginScreen() {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const passwordRef = useRef<TextInput>(null);
+  const setToken = useStore((state) => state.setToken);
+
+  const loginMutation = useMutation({
+    mutationFn: (dane: LoginRequest) =>
+      apiRequest<LoginResponse>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(dane),
+      }),
+    onSuccess: (data) => setToken(data.token, data.wygasa),
+  });
 
   return (
     <BaseView>
@@ -36,7 +51,10 @@ export default function LoginScreen() {
         ></CustomInputField>
       </View>
 
-      <CustomButton label="Zaloguj się" />
+      <CustomButton
+        onPress={() => loginMutation.mutate({ login, haslo: password })}
+        label="Zaloguj się"
+      />
       <CustomButton
         onPress={() => router.push("/register")}
         style={{ backgroundColor: "transparent" }}
