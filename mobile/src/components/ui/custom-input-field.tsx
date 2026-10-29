@@ -24,7 +24,7 @@ export function CustomInputField({
           height: 54,
           paddingHorizontal: 16,
           borderRadius: 16,
-          borderColor: theme.textSecondary,
+          borderColor: theme.textInputStroke,
           borderWidth: 2,
           width: "100%",
         },

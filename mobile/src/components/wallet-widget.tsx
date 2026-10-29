@@ -40,9 +40,10 @@ export function WalletWidget() {
           style={{
             flexDirection: "row",
             paddingBottom: 2,
+            paddingHorizontal: 16,
           }}
         >
-          <View style={{ width: 44 }}></View>
+          <View style={{ width: 24 }}></View>
           <ThemedText
             type="label"
             themeColor="textSecondary"
