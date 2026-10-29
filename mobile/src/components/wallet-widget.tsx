@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { View, ScrollView } from "react-native";
 import { CustomContainer } from "@/components/ui/custom-container";
 import { ThemedText } from "@/components/ui/themed-text";
 import { CustomButton } from "@/components/ui/custom-button";
@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/api-client";
 import { SaldoResponse } from "@/lib/api-types";
 
 export function WalletWidget() {
+  // Placeholder request
   const { data, isLoading, error } = useQuery({
     queryKey: ["saldo"],
     queryFn: () => apiRequest<SaldoResponse>("/konta/me/saldo"),
@@ -35,11 +36,46 @@ export function WalletWidget() {
             {walletValueInMainCurrency.toFixed(2)} PLN
           </ThemedText>
         </View>
-        <WalletCurrencyRow
-          currency="USD"
-          amount={100.0}
-          amountInMainCurrency={400.0}
-        ></WalletCurrencyRow>
+        <View
+          style={{
+            flexDirection: "row",
+            paddingBottom: 2,
+          }}
+        >
+          <View style={{ width: 44 }}></View>
+          <ThemedText
+            type="label"
+            themeColor="textSecondary"
+            style={{ flex: 5, paddingLeft: 24 }}
+            numberOfLines={1}
+          >
+            Wartość
+          </ThemedText>
+          <ThemedText
+            type="label"
+            themeColor="textSecondary"
+            style={{ flex: 4, textAlign: "left" }}
+            numberOfLines={1}
+          >
+            Wartość w PLN
+          </ThemedText>
+        </View>
+
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 4 }}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled={true}
+          style={{ width: "100%" }}
+        >
+          {salda.map((s) => (
+            <WalletCurrencyRow
+              key={s.waluta}
+              currency={s.waluta}
+              amount={s.saldo}
+              amountInMainCurrency={45345}
+            />
+          ))}
+        </ScrollView>
       </CustomContainer>
       <View style={{ flexDirection: "row" }}>
         <CustomButton
