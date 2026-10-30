@@ -10,6 +10,7 @@ export default function TabLayout() {
   const theme = useTheme();
   return (
     <Tabs
+      initialRouteName="index"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,

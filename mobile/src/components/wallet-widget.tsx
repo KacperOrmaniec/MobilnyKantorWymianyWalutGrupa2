@@ -16,6 +16,7 @@ export function WalletWidget() {
   const salda = data?.salda ?? [];
   const walletValueInMainCurrency =
     salda.find((s) => s.waluta === "PLN")?.saldo ?? 0;
+  const visibleSalda = salda.filter((s) => s.saldo > 0);
   return (
     <View style={{ flex: 2 }}>
       <CustomContainer
@@ -68,12 +69,12 @@ export function WalletWidget() {
           nestedScrollEnabled={true}
           style={{ width: "100%" }}
         >
-          {salda.map((s) => (
+          {visibleSalda.map((s) => (
             <WalletCurrencyRow
               key={s.waluta}
               currency={s.waluta}
               amount={s.saldo}
-              amountInMainCurrency={45345}
+              amountInMainCurrency={45345} // placeholder value
             />
           ))}
         </ScrollView>

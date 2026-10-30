@@ -4,7 +4,7 @@ import { LatestTransactionWidget } from "@/components/latest-transaction-widget"
 
 export default function HomeScreen() {
   return (
-    <BaseView>
+    <BaseView style={{ gap: 18 }}>
       <WalletWidget />
       <LatestTransactionWidget />
     </BaseView>

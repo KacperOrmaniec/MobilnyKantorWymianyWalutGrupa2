@@ -13,3 +13,15 @@ export type KursyResponse = Kurs[];
 
 export type LoginRequest = { login: string; haslo: string };
 export type LoginResponse = { token: string; wygasa: string };
+export type RegisterRequest = {
+  login: string;
+  haslo: string;
+  imie: string;
+  nazwisko: string;
+};
+export type RegisterResponse = {
+  id: number;
+  login: string;
+  imie: string;
+  nazwisko: string;
+};

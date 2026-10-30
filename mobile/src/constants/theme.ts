@@ -5,7 +5,7 @@ export const Colors = {
     elementDefault: "#DBDBDB",
     elementSelected: "#E0E1E6",
     textSecondary: "#7a7a7a",
-    stroke: "#C9C9C9",
+    stroke: "#cecece",
     textInputStroke: "#acacac",
   },
   dark: {

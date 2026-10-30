@@ -7,7 +7,7 @@ import { BottomTabInset } from "@/constants/theme";
 export default function BaseView({ children, style, ...rest }: ViewProps) {
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea} {...rest}>
+      <SafeAreaView style={{ ...styles.safeArea, ...style }} {...rest}>
         {children}
       </SafeAreaView>
     </ThemedView>
@@ -22,7 +22,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
     paddingHorizontal: 17,
-    gap: 18,
     paddingBottom: BottomTabInset,
   },
 });

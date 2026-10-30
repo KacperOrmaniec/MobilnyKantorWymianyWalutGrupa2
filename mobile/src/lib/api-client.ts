@@ -24,9 +24,11 @@ export async function apiRequest<T = any>(
   });
 
   if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
+    const errorBody: { error?: string } = await response
+      .json()
+      .catch(() => ({}));
     if (__DEV__) console.log("[api] !", response.status, endpoint, errorBody);
-    throw new Error(errorBody.message || `Request failed (${response.status})`);
+    throw new Error(errorBody.error || `Request failed (${response.status})`);
   }
 
   if (__DEV__) console.log("[api] ok", endpoint);
