@@ -59,7 +59,7 @@ export function WalletWidget() {
             style={{ flex: 4, textAlign: "left" }}
             numberOfLines={1}
           >
-            Wartość w PLN
+            Wartość w PLN (WIP)
           </ThemedText>
         </View>
 
@@ -74,7 +74,7 @@ export function WalletWidget() {
               key={s.waluta}
               currency={s.waluta}
               amount={s.saldo}
-              amountInMainCurrency={45345} // placeholder value
+              amountInMainCurrency={0} // placeholder value
             />
           ))}
         </ScrollView>
