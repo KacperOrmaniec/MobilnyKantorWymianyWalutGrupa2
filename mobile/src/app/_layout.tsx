@@ -7,8 +7,13 @@ import { Image } from "expo-image";
 import { useStore } from "@/hooks/use-store";
 import { apiRequest } from "@/lib/api-client";
 import { useEffect } from "react";
+import * as SystemUI from "expo-system-ui";
 
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
+  const theme = useTheme();
+  const isLoggedIn = useStore((state) => !!state.token);
+
   useEffect(() => {
     // Test API request on component mount
     apiRequest("/test")
@@ -16,9 +21,10 @@ export default function RootLayout() {
       .catch((e) => console.log("[api] /test failed:", e.message));
   }, []);
 
-  const colorScheme = useColorScheme();
-  const theme = useTheme();
-  const isLoggedIn = useStore((state) => !!state.token);
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(theme.background);
+  }, [theme.background]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -42,12 +48,14 @@ export default function RootLayout() {
               </View>
             ),
             headerShown: true,
+            animation: "none",
           }}
         >
           <Stack.Protected guard={isLoggedIn}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="deposit" />
             <Stack.Screen name="transaction-history" />
+            <Stack.Screen name="exchange-details" />
           </Stack.Protected>
           <Stack.Protected guard={!isLoggedIn}>
             <Stack.Screen name="(auth)" />

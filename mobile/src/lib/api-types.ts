@@ -9,6 +9,15 @@ export type Kurs = {
   kursSprzedazyPrzezKantor: number;
 };
 
+export type KursHistoryczny = {
+  id: number;
+  waluta: string;
+  kursAvg: number;
+  data: string;
+};
+
+export type KursyHistoryczneResponse = KursHistoryczny[];
+
 export type KursyResponse = Kurs[];
 
 export type LoginRequest = { login: string; haslo: string };

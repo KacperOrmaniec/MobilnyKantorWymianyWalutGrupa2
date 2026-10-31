@@ -6,9 +6,9 @@ import { WalletCurrencyRow } from "@/components/wallet-currency-row";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api-client";
 import { SaldoResponse } from "@/lib/api-types";
+import { router } from "expo-router";
 
 export function WalletWidget() {
-  // Placeholder request
   const { data, isLoading, error } = useQuery({
     queryKey: ["saldo"],
     queryFn: () => apiRequest<SaldoResponse>("/konta/me/saldo"),
@@ -81,6 +81,9 @@ export function WalletWidget() {
       </CustomContainer>
       <View style={{ flexDirection: "row" }}>
         <CustomButton
+          onPress={() => {
+            router.push("/deposit");
+          }}
           label="Wpłata"
           style={{
             borderBottomLeftRadius: 25,

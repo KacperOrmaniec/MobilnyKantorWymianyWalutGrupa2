@@ -1,4 +1,5 @@
 import { ScrollView, View } from "react-native";
+import { router } from "expo-router";
 import { ThemedText } from "@/components/ui/themed-text";
 import BaseView from "@/components/base-view";
 import { CustomContainer } from "@/components/ui/custom-container";
@@ -68,6 +69,12 @@ export default function ExchangeScreen() {
               currency={s.waluta}
               sellExchangeRate={s.kursZakupuPrzezKantor}
               buyExchangeRate={s.kursSprzedazyPrzezKantor}
+              onPress={() =>
+                router.push({
+                  pathname: "/exchange-details",
+                  params: { waluta: s.waluta },
+                })
+              }
             />
           ))}
         </ScrollView>

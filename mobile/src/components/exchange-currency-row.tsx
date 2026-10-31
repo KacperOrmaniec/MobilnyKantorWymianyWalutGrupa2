@@ -9,6 +9,7 @@ import {
 import { ThemedText } from "@/components/ui/themed-text";
 import { useTheme } from "@/hooks/use-theme";
 import { CURRENCY_FLAGS } from "@/hooks/flags";
+import { router } from "expo-router";
 
 type ExchangeCurrencyRowProps = PressableProps & {
   currency: string;
@@ -29,7 +30,9 @@ export function ExchangeCurrencyRow({
   const theme = useTheme();
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() =>
+        router.navigate({ pathname: "/exchange-details", params: { currency } })
+      }
       style={[
         {
           marginBottom: 10,
