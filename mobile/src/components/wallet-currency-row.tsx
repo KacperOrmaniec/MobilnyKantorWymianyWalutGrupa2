@@ -1,6 +1,13 @@
-import { Pressable, PressableProps, StyleProp, ViewStyle } from "react-native";
+import {
+  Pressable,
+  PressableProps,
+  StyleProp,
+  ViewStyle,
+  Image,
+} from "react-native";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useTheme } from "@/hooks/use-theme";
+import { CURRENCY_FLAGS } from "@/hooks/flags";
 
 type WalletCurrencyRowProps = PressableProps & {
   currency: string;
@@ -10,9 +17,9 @@ type WalletCurrencyRowProps = PressableProps & {
 };
 
 export function WalletCurrencyRow({
-  currency = "USD",
-  amount = 100.0,
-  amountInMainCurrency = 400.0,
+  currency,
+  amount,
+  amountInMainCurrency,
   style,
   onPress,
   ...otherProps
@@ -20,9 +27,10 @@ export function WalletCurrencyRow({
   const theme = useTheme();
   return (
     <Pressable
+      onPress={onPress}
       style={[
         {
-          marginTop: 10,
+          marginBottom: 10,
           backgroundColor: theme.elementDefault,
           flexDirection: "row",
           alignItems: "center",
@@ -30,15 +38,22 @@ export function WalletCurrencyRow({
           height: 54,
           width: "100%",
           borderRadius: 16,
-          gap: 70,
         },
         style,
       ]}
       {...otherProps}
     >
-      <ThemedText>{currency}</ThemedText>
-      <ThemedText>{amount}</ThemedText>
-      <ThemedText>{amountInMainCurrency}</ThemedText>
+      <Image
+        source={CURRENCY_FLAGS[currency]}
+        style={{ height: 18, width: 26 }}
+        resizeMode="contain"
+      />
+      <ThemedText style={{ flex: 5, paddingLeft: 24 }} numberOfLines={1}>
+        {amount.toFixed(2)} {currency}
+      </ThemedText>
+      <ThemedText style={{ flex: 4, textAlign: "left" }} numberOfLines={1}>
+        {amountInMainCurrency.toFixed(2)}
+      </ThemedText>
     </Pressable>
   );
 }

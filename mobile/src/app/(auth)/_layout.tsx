@@ -1,5 +1,4 @@
 import { Stack } from "expo-router";
-import { View } from "react-native";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function AuthLayout() {
@@ -8,7 +7,6 @@ export default function AuthLayout() {
     <Stack
       screenOptions={{
         contentStyle: {
-          paddingTop: 70,
           paddingHorizontal: 10,
           backgroundColor: theme.background,
         },

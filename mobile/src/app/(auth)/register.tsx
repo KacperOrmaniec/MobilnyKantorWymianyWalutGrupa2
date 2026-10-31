@@ -5,6 +5,9 @@ import { CustomButton } from "@/components/ui/custom-button";
 import { TextInput, View } from "react-native";
 import { useRef, useState } from "react";
 import { router } from "expo-router";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api-client";
+import { RegisterRequest, RegisterResponse } from "@/lib/api-types";
 
 export default function RegisterScreen() {
   const [login, setLogin] = useState("");
@@ -16,8 +19,23 @@ export default function RegisterScreen() {
   const loginRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
 
+  const registerMutation = useMutation({
+    mutationFn: (dane: RegisterRequest) =>
+      apiRequest<RegisterResponse>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify(dane),
+      }),
+    onSuccess: () => router.navigate({ pathname: "/login", params: { login } }),
+  });
+  const errorMessage = registerMutation.error?.message;
+
   return (
     <BaseView>
+      {errorMessage && (
+        <ThemedText type="label" style={{ paddingLeft: 5, color: "red" }}>
+          {errorMessage}
+        </ThemedText>
+      )}
       <View>
         <ThemedText type="default" style={{ padding: 5 }}>
           Imię
@@ -68,9 +86,20 @@ export default function RegisterScreen() {
         ></CustomInputField>
       </View>
 
-      <CustomButton label="Stwórz konto" />
       <CustomButton
-        onPress={() => router.push("/login")}
+        style={{ margin: 18 }}
+        onPress={() =>
+          registerMutation.mutate({
+            login,
+            haslo: password,
+            imie: name,
+            nazwisko: surname,
+          })
+        }
+        label="Stwórz konto"
+      />
+      <CustomButton
+        onPress={() => router.navigate("/login")}
         style={{ backgroundColor: "transparent" }}
         label="Mam już konto"
       />

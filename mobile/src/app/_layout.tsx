@@ -4,12 +4,27 @@ import { useColorScheme, View } from "react-native";
 import { useTheme } from "@/hooks/use-theme";
 import { queryClient } from "@/lib/query-client";
 import { Image } from "expo-image";
-
-const isLoggedIn = true; // TODO: Replace with actual authentication logic
+import { useStore } from "@/hooks/use-store";
+import { apiRequest } from "@/lib/api-client";
+import { useEffect } from "react";
+import * as SystemUI from "expo-system-ui";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const theme = useTheme();
+  const isLoggedIn = useStore((state) => !!state.token);
+
+  useEffect(() => {
+    // Test API request on component mount
+    apiRequest("/test")
+      .then((data) => console.log("[api] /test:", data))
+      .catch((e) => console.log("[api] /test failed:", e.message));
+  }, []);
+
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(theme.background);
+  }, [theme.background]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -33,12 +48,14 @@ export default function RootLayout() {
               </View>
             ),
             headerShown: true,
+            animation: "none",
           }}
         >
           <Stack.Protected guard={isLoggedIn}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="deposit" />
             <Stack.Screen name="transaction-history" />
+            <Stack.Screen name="exchange-details" />
           </Stack.Protected>
           <Stack.Protected guard={!isLoggedIn}>
             <Stack.Screen name="(auth)" />

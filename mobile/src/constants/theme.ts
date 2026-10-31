@@ -4,8 +4,8 @@ export const Colors = {
     background: "#EFEEED",
     elementDefault: "#DBDBDB",
     elementSelected: "#E0E1E6",
-    textSecondary: "#9c9c9c",
-    stroke: "#C9C9C9",
+    textSecondary: "#7a7a7a",
+    stroke: "#cecece",
     textInputStroke: "#acacac",
   },
   dark: {

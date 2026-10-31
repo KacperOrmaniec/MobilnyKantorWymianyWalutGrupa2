@@ -1,56 +1,103 @@
-# Welcome to your Expo app 👋
+# Kantor — aplikacja mobilna
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplikacja mobilna do wymiany walut (system kantoru). Zbudowana na **Expo 57**, **expo-router** i **TypeScript**.
 
-## Get started
+## Wymagania
 
-1. Install dependencies
+- [Node.js](https://nodejs.org) w wersji LTS
+- **Expo Go w wersji 57** — [pobierz z expo.dev/go](https://expo.dev/go)
+- Uruchomiony backend API (domyślnie `http://localhost:5171`) — patrz [../backend/README.md](../backend/README.md)
 
-   ```bash
-   npm install
-   ```
+> Ważne: projekt używa Expo 57, więc aplikacja **Expo Go musi być w wersji 57**. Starsza lub nowsza wersja nie uruchomi projektu.
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Instalacja
 
 ```bash
-npm run reset-project
+cd mobile
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Uruchomienie
 
-### Other setup steps
+```bash
+npx expo start
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Następnie:
 
-## Learn more
+- **Telefon** — zeskanuj kod QR aplikacją Expo Go (wersja 57),
+- **Emulator Androida** — wciśnij `a` w terminalu.
 
-To learn more about developing your project with Expo, look at the following resources:
+### Adres backendu
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Aplikacja łączy się z API pod adresem zależnym od tego, gdzie ją uruchamiasz:
 
-## Join the community
+| Środowisko                      | Adres                                                                 |
+| ------------------------------- | --------------------------------------------------------------------- |
+| Emulator Androida               | `http://10.0.2.2:5171` (domyślnie, nie wymaga konfiguracji)           |
+| Telefon w tej samej sieci Wi-Fi | `EXPO_PUBLIC_API_URL` w pliku `.env`, np. `http://192.168.1.100:5171` |
 
-Join our community of developers creating universal apps.
+#### Plik `.env`
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Konfiguracja wzorowana jest na `.env.example`. Skopiuj go do `.env`:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+```bash
+# Git Bash / macOS / Linux
+cp .env.example .env
+```
+
+W `.env.example` linia `EXPO_PUBLIC_API_URL` jest **zakomentowana** (zaczyna się od `#`). **Odkomentuj ją tylko wtedy, gdy uruchamiasz aplikację na fizycznym telefonie** — usuń `#` z początku linii i wpisz IP komputera w tej samej sieci Wi-Fi:
+
+```bash
+EXPO_PUBLIC_API_URL=http://192.168.1.100:5171
+```
+
+**Nie musisz nic zmieniać, jeśli używasz emulatora Androida** — aplikacja korzysta wtedy z domyślnego `http://10.0.2.2:5171`, a linia może zostać zakomentowana.
+
+Po **każdej** zmianie w `.env` zrestartuj Metro z wyczyszczonym cache — zmienne `EXPO_PUBLIC_*` są wstrzykiwane do bundla przy jego budowaniu, więc sam hot-reload ich nie odświeży:
+
+```bash
+npx expo start --clear
+```
+
+> `.env` jest w `.gitignore` i nigdy nie trafia do repozytorium — każdy deweloper ma własny, z własnym IP. Do repo commitowany jest tylko `.env.example` ze wzorem (bez prawdziwego IP).
+>
+> Pamiętaj, że wszystkie zmienne `EXPO_PUBLIC_*` są widoczne w zbudowanej aplikacji — nie umieszczaj w nich haseł ani kluczy API.
+
+#### Uruchomienie backendu dla telefonu
+
+Dla telefonu backend musi nasłuchiwać na wszystkich interfejsach, nie tylko na `localhost`:
+
+```bash
+dotnet run --project backend/src/Kantor.Api --launch-profile http-siec
+```
+
+## Struktura projektu
+
+```
+src/
+  app/          # ekrany i routing (expo-router, routing po plikach)
+  components/   # komponenty UI
+  hooks/        # hooki (motyw, store, flagi walut)
+  lib/          # klient API, typy DTO, React Query
+  constants/    # motyw, kolory
+```
+
+## Przydatne skrypty
+
+```bash
+npm run android   # uruchom na emulatorze Androida
+npm run ios       # uruchom na symulatorze iOS
+npm run web       # uruchom w przeglądarce
+npm run lint      # sprawdź kod
+```
+
+## Dokumentacja
+
+- [Expo](https://docs.expo.dev/)
+- [Expo Router](https://docs.expo.dev/router/introduction/)
+- [Expo Go](https://expo.dev/go)
