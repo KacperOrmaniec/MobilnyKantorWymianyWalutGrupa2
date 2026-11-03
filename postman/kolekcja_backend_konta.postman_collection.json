@@ -7,17 +7,46 @@
   },
   "item": [
     {
+      "name": "Status API",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/test",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "test"
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "test połączenia z bazą danych",
       "request": {
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:5171/testdb",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/testdb",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "testdb"
           ]
@@ -26,20 +55,35 @@
           "type": "noauth"
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Połączenie z bazą\", () => pm.expect(pm.response.json().connected).to.equal(true));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Rejestracja użytkownika",
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "url": {
-          "raw": "http://localhost:5171/auth/register",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/auth/register",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "auth",
             "register"
@@ -47,7 +91,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"login\": \"andrzej\",\r\n  \"haslo\": \"tajnehaslo\",\r\n  \"imie\": \"Andrzej\",\r\n  \"nazwisko\": \"Nowak\"\r\n}",
+          "raw": "{\n  \"login\": \"{{login}}\",\n  \"haslo\": \"TestPostman123\",\n  \"imie\": \"Tester\",\n  \"nazwisko\": \"Postman\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -58,20 +102,43 @@
           "type": "noauth"
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"login\", \"pm_\" + pm.variables.replaceIn(\"{{$guid}}\"));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Logowanie (zapisuje token)",
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "url": {
-          "raw": "http://localhost:5171/auth/login",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/auth/login",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "auth",
             "login"
@@ -79,7 +146,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"login\": \"andrzej\",\r\n  \"haslo\": \"tajnehaslo\"\r\n}",
+          "raw": "{\n  \"login\": \"{{login}}\",\n  \"haslo\": \"TestPostman123\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -97,9 +164,12 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "// Zapisuje token do zmiennej kolekcji {{token}}, używanej przez pozostałe requesty.",
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.unset(\"token\");",
               "if (pm.response.code === 200) {",
-              "  pm.collectionVariables.set(\"token\", pm.response.json().token);",
+              "  const value = pm.response.json().token;",
+              "  pm.test(\"Odpowiedź zawiera token\", () => pm.expect(value).to.be.a(\"string\"));",
+              "  if (value) pm.collectionVariables.set(\"token\", value);",
               "}"
             ]
           }
@@ -112,19 +182,28 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:5171/konta/me",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/konta/me",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "konta",
             "me"
           ]
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Sprawdzanie salda użytkownika",
@@ -132,12 +211,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:5171/konta/me/saldo",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/konta/me/saldo",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "konta",
             "me",
@@ -145,20 +222,34 @@
           ]
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "doładowanie salda PLN",
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "url": {
-          "raw": "http://localhost:5171/konta/me/doladowanie",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/konta/me/doladowanie",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "konta",
             "me",
@@ -175,20 +266,34 @@
           }
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
-      "name": "Przewalutowanie",
+      "name": "Kup 10 EUR za PLN",
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "url": {
-          "raw": "http://localhost:5171/konta/me/przewalutowanie",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/konta/me/przewalutowanie",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "konta",
             "me",
@@ -197,7 +302,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"waluta\": \"EUR\",\r\n  \"kwota\": 10,\r\n  \"typTransakcji\": \"ZAKUP\" //ZAKUP lub SPRZEDAZ\r\n  //jeżeli będzie wybrane EURO 10 i ZAKUP oznacza że uzytkownik chce kupic 10 EURO\r\n}",
+          "raw": "{\n  \"waluta\": \"EUR\",\n  \"kwota\": 10,\n  \"typTransakcji\": \"ZAKUP\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -205,7 +310,62 @@
           }
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sprzedaj 1 EUR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/konta/me/przewalutowanie",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "konta",
+            "me",
+            "przewalutowanie"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"waluta\": \"EUR\",\n  \"kwota\": 1,\n  \"typTransakcji\": \"SPRZEDAZ\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Historia przewalutowania",
@@ -213,12 +373,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:5171/konta/me/historia-przewalutowania",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/konta/me/historia-przewalutowania",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "konta",
             "me",
@@ -226,7 +384,18 @@
           ]
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "historia przelewow użytkownika",
@@ -234,12 +403,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:5171/konta/me/historia-przelewow",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/konta/me/historia-przelewow",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "konta",
             "me",
@@ -247,7 +414,18 @@
           ]
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Wspólna historia transakcji",
@@ -255,30 +433,54 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:5171/konta/me/transakcje",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5171",
-          "path": ["konta", "me", "transakcje"]
+          "raw": "{{baseUrl}}/konta/me/transakcje",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "konta",
+            "me",
+            "transakcje"
+          ]
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Dodanie alertu kursowego",
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "url": {
-          "raw": "http://localhost:5171/konta/me/alerty",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5171",
-          "path": ["konta", "me", "alerty"]
+          "raw": "{{baseUrl}}/konta/me/alerty",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "konta",
+            "me",
+            "alerty"
+          ]
         },
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"waluta\": \"EUR\",\r\n  \"typ\": \"ZAKUP\", //ZAKUP: kurs sprzedaży <= prog, SPRZEDAZ: kurs zakupu >= prog\r\n  \"prog\": 4.25\r\n}",
+          "raw": "{\n  \"waluta\": \"EUR\",\n  \"typ\": \"ZAKUP\",\n  \"prog\": 4.25\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -286,7 +488,24 @@
           }
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.unset(\"alertId\");",
+              "if (pm.response.code === 201) {",
+              "  const value = pm.response.json().id;",
+              "  pm.test(\"Odpowiedź zawiera id\", () => pm.expect(value).to.be.a(\"number\"));",
+              "  if (value) pm.collectionVariables.set(\"alertId\", value);",
+              "}"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Lista alertów kursowych",
@@ -294,14 +513,29 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:5171/konta/me/alerty",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5171",
-          "path": ["konta", "me", "alerty"]
+          "raw": "{{baseUrl}}/konta/me/alerty",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "konta",
+            "me",
+            "alerty"
+          ]
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Usunięcie alertu kursowego",
@@ -309,14 +543,30 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "http://localhost:5171/konta/me/alerty/1",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "5171",
-          "path": ["konta", "me", "alerty", "1"]
+          "raw": "{{baseUrl}}/konta/me/alerty/{{alertId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "konta",
+            "me",
+            "alerty",
+            "{{alertId}}"
+          ]
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
     }
   ],
   "auth": {
@@ -331,7 +581,22 @@
   },
   "variable": [
     {
+      "key": "baseUrl",
+      "value": "http://localhost:5171",
+      "type": "string"
+    },
+    {
       "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "login",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alertId",
       "value": "",
       "type": "string"
     }

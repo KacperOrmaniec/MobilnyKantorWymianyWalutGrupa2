@@ -12,21 +12,27 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://127.0.0.1:5171/kursy",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/kursy",
           "host": [
-            "127",
-            "0",
-            "0",
-            "1"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "kursy"
           ]
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "wymuszone odświeżenie kursów z NBP",
@@ -34,28 +40,33 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://127.0.0.1:5171/kursy?odswiez=true",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/kursy?odswiez=true",
           "host": [
-            "127",
-            "0",
-            "0",
-            "1"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "kursy"
           ],
           "query": [
             {
               "key": "odswiez",
-              "value": "true",
-              "description": "Opcjonalne: pobiera kursy z NBP zamiast zwracać tylko te z bazy."
+              "value": "true"
             }
           ]
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "historyczne kursy z ostatnich 7 dni",
@@ -63,22 +74,28 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://127.0.0.1:5171/kursy/historyczne",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/kursy/historyczne",
           "host": [
-            "127",
-            "0",
-            "0",
-            "1"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "kursy",
             "historyczne"
           ]
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "historyczne kursy EUR z zakresu dat",
@@ -86,15 +103,10 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://127.0.0.1:5171/kursy/historyczne?waluta=EUR&od=2026-09-01&do=2026-10-14",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/kursy/historyczne?waluta=EUR&od={{od}}&do={{do}}",
           "host": [
-            "127",
-            "0",
-            "0",
-            "1"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "kursy",
             "historyczne"
@@ -102,23 +114,52 @@
           "query": [
             {
               "key": "waluta",
-              "value": "EUR",
-              "description": "Kod waluty bez PLN; brak = wszystkie waluty."
+              "value": "EUR"
             },
             {
               "key": "od",
-              "value": "2026-09-01",
-              "description": "RRRR-MM-DD; zakres najwyżej 93 dni."
+              "value": "{{od}}"
             },
             {
               "key": "do",
-              "value": "2026-10-14",
-              "description": "RRRR-MM-DD; nie w przyszłości."
+              "value": "{{do}}"
             }
           ]
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const end = new Date();",
+              "end.setUTCDate(end.getUTCDate() - 1);",
+              "const start = new Date(end);",
+              "start.setUTCDate(start.getUTCDate() - 13);",
+              "pm.variables.set(\"od\", start.toISOString().slice(0, 10));",
+              "pm.variables.set(\"do\", end.toISOString().slice(0, 10));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5171",
+      "type": "string"
     }
   ]
 }

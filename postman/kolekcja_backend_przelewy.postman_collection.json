@@ -10,14 +10,17 @@
       "name": "Logowanie (zapisuje token)",
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "url": {
-          "raw": "http://localhost:5171/auth/login",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/auth/login",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "auth",
             "login"
@@ -25,7 +28,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"login\": \"andrzej\",\r\n  \"haslo\": \"tajnehaslo\"\r\n}",
+          "raw": "{\n  \"login\": \"test\",\n  \"haslo\": \"test123\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -43,10 +46,57 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "// Zapisuje token do zmiennej kolekcji {{token}}, używanej przez pozostałe requesty.",
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.unset(\"token\");",
               "if (pm.response.code === 200) {",
-              "  pm.collectionVariables.set(\"token\", pm.response.json().token);",
+              "  const value = pm.response.json().token;",
+              "  pm.test(\"Odpowiedź zawiera token\", () => pm.expect(value).to.be.a(\"string\"));",
+              "  if (value) pm.collectionVariables.set(\"token\", value);",
               "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Doładuj konto test o 1 PLN",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/konta/me/doladowanie",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "konta",
+            "me",
+            "doladowanie"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kwota\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
             ]
           }
         }
@@ -56,21 +106,24 @@
       "name": "wykonanie przelewu",
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "url": {
-          "raw": "http://localhost:5171/przelewy",
-          "protocol": "http",
+          "raw": "{{baseUrl}}/przelewy",
           "host": [
-            "localhost"
+            "{{baseUrl}}"
           ],
-          "port": "5171",
           "path": [
             "przelewy"
           ]
         },
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"loginOdbiorcy\": \"test2\",\r\n  \"kwota\": 1,\r\n  \"waluta\": \"EUR\"\r\n}",
+          "raw": "{\n  \"loginOdbiorcy\": \"test2\",\n  \"kwota\": 1,\n  \"waluta\": \"PLN\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -78,7 +131,18 @@
           }
         }
       },
-      "response": []
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     }
   ],
   "auth": {
@@ -92,6 +156,11 @@
     ]
   },
   "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5171",
+      "type": "string"
+    },
     {
       "key": "token",
       "value": "",
