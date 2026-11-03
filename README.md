@@ -1,6 +1,7 @@
 # MobilnyKantorWymianyWalutGrupa2
 
 System mobilny kantoru wymiany walut (projekt zaliczeniowy). Wymagania: [requirements.md](requirements.md).
+Dokumentacja projektowa https://vizjapl-my.sharepoint.com/:w:/g/personal/makowm506727965_aehit_students_vizja_pl/IQBBGVsIlF7tT4_swpy4DbYIAYe1dPPHVLkseWHj1bKmpCY?e=W8Pzea
 
 ## Stack
 
