@@ -34,6 +34,7 @@ export const useStore = create<AppState>((set) => ({
   },
 
   setMainCurrency: (currency) => set({ mainCurrency: currency }),
+  getMainCurrency: () => useStore.getState().mainCurrency,
 
   logout: async () => {
     await SecureStore.deleteItemAsync("token");
