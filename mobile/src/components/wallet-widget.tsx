@@ -5,18 +5,38 @@ import { CustomButton } from "@/components/ui/custom-button";
 import { WalletCurrencyRow } from "@/components/wallet-currency-row";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api-client";
-import { SaldoResponse } from "@/lib/api-types";
+import { KursyResponse, SaldoResponse } from "@/lib/api-types";
 import { router } from "expo-router";
+import { useStore } from "@/hooks/use-store";
 
 export function WalletWidget() {
-  const { data, isLoading, error } = useQuery({
+  const mainCurrency = useStore((state) => state.mainCurrency);
+
+  const { data: saldaData } = useQuery({
     queryKey: ["saldo"],
     queryFn: () => apiRequest<SaldoResponse>("/konta/me/saldo"),
   });
-  const salda = data?.salda ?? [];
-  const walletValueInMainCurrency =
-    salda.find((s) => s.waluta === "PLN")?.saldo ?? 0;
+
+  const { data: exchangeRates } = useQuery({
+    queryKey: ["kursy"],
+    queryFn: () => apiRequest<KursyResponse>("/kursy"),
+  });
+
+  const salda = saldaData?.salda ?? [];
+
   const visibleSalda = salda.filter((s) => s.saldo > 0);
+
+  const sellRateByCurrency = new Map(
+    exchangeRates?.map((k) => [k.waluta, k.kursZakupuPrzezKantor]),
+  );
+  const inMainCurrency = (waluta: string, saldo: number) =>
+    saldo *
+    (waluta === mainCurrency ? 1 : (sellRateByCurrency.get(waluta) ?? 0));
+
+  const walletValueInMainCurrency = salda.reduce(
+    (sum, s) => sum + inMainCurrency(s.waluta, s.saldo),
+    0,
+  );
   return (
     <View style={{ flex: 2 }}>
       <CustomContainer
@@ -59,7 +79,7 @@ export function WalletWidget() {
             style={{ flex: 4, textAlign: "left" }}
             numberOfLines={1}
           >
-            Wartość w PLN (WIP)
+            Wartość w {mainCurrency}
           </ThemedText>
         </View>
 
@@ -74,7 +94,7 @@ export function WalletWidget() {
               key={s.waluta}
               currency={s.waluta}
               amount={s.saldo}
-              amountInMainCurrency={0} // placeholder value
+              amountInMainCurrency={inMainCurrency(s.waluta, s.saldo)}
             />
           ))}
         </ScrollView>

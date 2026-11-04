@@ -121,7 +121,7 @@ export default function ExchangeDetailsScreen() {
 
         <View style={{ flexDirection: "row", gap: 12 }}>
           <CustomButton
-            label="Kup"
+            label="Zakup"
             onPress={() => setMode("buy")}
             style={{
               flex: 1,
@@ -129,7 +129,7 @@ export default function ExchangeDetailsScreen() {
             }}
           />
           <CustomButton
-            label="Sprzedaj"
+            label="Sprzedaż"
             onPress={() => setMode("sell")}
             style={{
               flex: 1,
