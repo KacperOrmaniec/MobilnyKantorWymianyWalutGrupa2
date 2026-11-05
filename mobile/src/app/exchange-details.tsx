@@ -2,7 +2,6 @@ import BaseView from "@/components/base-view";
 import { CustomContainer } from "@/components/ui/custom-container";
 import { ThemedText } from "@/components/ui/themed-text";
 import { router, useLocalSearchParams } from "expo-router";
-import { LineChart } from "react-native-gifted-charts";
 import { useState } from "react";
 import { View, Image } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -13,9 +12,10 @@ import { KursyHistoryczneResponse, KursyResponse } from "@/lib/api-types";
 import { useTheme } from "@/hooks/use-theme";
 import { CURRENCY_FLAGS } from "@/hooks/flags";
 import { useStore } from "@/hooks/use-store";
+import { ExchangeRateChart } from "@/components/exchange-rate-chart";
 
 export default function ExchangeDetailsScreen() {
-  const [containerWidth, setContainerWidth] = useState(0);
+  const theme = useTheme();
   const [amount, setAmount] = useState("");
   const [mode, setMode] = useState<"buy" | "sell">("buy");
   const queryClient = useQueryClient();
@@ -63,10 +63,7 @@ export default function ExchangeDetailsScreen() {
   });
 
   const graphExchangeRateValues =
-    exchangeRatesHistory?.map((d) => d.kursAvg) || [];
-  const min = Math.min(...graphExchangeRateValues);
-  const max = Math.max(...graphExchangeRateValues);
-  const pad = (max - min) / 10;
+    exchangeRatesHistory?.map((d) => d.kursAvg) ?? [];
 
   const amountParsed = Number(amount.replace(",", "."));
   const amountInMainCurrency =
@@ -75,9 +72,7 @@ export default function ExchangeDetailsScreen() {
       : "";
   return (
     <BaseView style={{ paddingBottom: 30 }}>
-      <CustomContainer
-        onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
-      >
+      <CustomContainer>
         <View
           style={{
             flexDirection: "row",
@@ -99,25 +94,7 @@ export default function ExchangeDetailsScreen() {
           Średni kurs historyczny:
         </ThemedText>
 
-        <LineChart
-          data={exchangeRatesHistory?.map((d) => ({ value: d.kursAvg })) || []}
-          yAxisTextStyle={{ color: useTheme().text }}
-          showFractionalValues
-          color={useTheme().text}
-          yAxisColor={useTheme().text}
-          xAxisThickness={0}
-          thickness={3}
-          hideDataPoints
-          xAxisColor="white"
-          yAxisOffset={min - pad}
-          yAxisLabelWidth={60}
-          roundToDigits={4}
-          noOfSections={7}
-          adjustToWidth={true}
-          parentWidth={containerWidth - 40}
-          initialSpacing={0}
-          height={160}
-        />
+        <ExchangeRateChart data={graphExchangeRateValues} />
 
         <View style={{ flexDirection: "row", gap: 12 }}>
           <CustomButton
@@ -125,7 +102,8 @@ export default function ExchangeDetailsScreen() {
             onPress={() => setMode("buy")}
             style={{
               flex: 1,
-              backgroundColor: isBuy ? useTheme().elementSelected : undefined,
+              backgroundColor: isBuy ? theme.elementSelected : undefined,
+              height: 42,
             }}
           />
           <CustomButton
@@ -133,7 +111,8 @@ export default function ExchangeDetailsScreen() {
             onPress={() => setMode("sell")}
             style={{
               flex: 1,
-              backgroundColor: isBuy ? undefined : useTheme().elementSelected,
+              backgroundColor: isBuy ? undefined : theme.elementSelected,
+              height: 42,
             }}
           />
         </View>
