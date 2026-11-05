@@ -1,6 +1,14 @@
 export type Saldo = { waluta: string; nazwa: string; saldo: number };
 export type SaldoResponse = { id: number; salda: Saldo[] };
 
+export type ProfilResponse = {
+  id: number;
+  login: string;
+  imie: string;
+  nazwisko: string;
+  salda: Saldo[];
+};
+
 export type Kurs = {
   id: number;
   timestamp: string;
@@ -34,3 +42,24 @@ export type RegisterResponse = {
   imie: string;
   nazwisko: string;
 };
+
+export type RodzajTransakcji =
+  | "DOLADOWANIE"
+  | "ZAKUP"
+  | "SPRZEDAZ"
+  | "PRZELEW_WYCHODZACY"
+  | "PRZELEW_PRZYCHODZACY";
+
+export type Transakcja = {
+  id: number;
+  rodzaj: RodzajTransakcji;
+  walutaZrodlowa: string;
+  walutaDocelowa: string;
+  kwota: number;
+  kwotaDocelowa: number | null;
+  kurs: number | null;
+  data: string;
+  kontrahent: string | null;
+};
+
+export type TransakcjeResponse = Transakcja[];

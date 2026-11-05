@@ -1,6 +1,6 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { DarkTheme, DefaultTheme, ThemeProvider, Stack } from "expo-router";
-import { useColorScheme, View } from "react-native";
+import { Appearance, useColorScheme, View } from "react-native";
 import { useTheme } from "@/hooks/use-theme";
 import { queryClient } from "@/lib/query-client";
 import { Image } from "expo-image";
@@ -13,6 +13,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const theme = useTheme();
   const isLoggedIn = useStore((state) => !!state.token);
+  const themeMode = useStore((state) => state.themeMode);
 
   useEffect(() => {
     // Test API request on component mount
@@ -25,6 +26,12 @@ export default function RootLayout() {
     SystemUI.setBackgroundColorAsync(theme.background);
   }, [theme.background]);
 
+  useEffect(() => {
+    Appearance.setColorScheme(
+      themeMode === "system" ? "unspecified" : themeMode,
+    );
+  }, [themeMode]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -34,7 +41,7 @@ export default function RootLayout() {
               <View
                 style={{
                   backgroundColor: theme.background,
-                  height: 130,
+                  height: 122,
                   justifyContent: "flex-end",
                   alignItems: "center",
                 }}
