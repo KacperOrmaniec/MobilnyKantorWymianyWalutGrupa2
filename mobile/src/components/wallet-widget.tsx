@@ -38,7 +38,7 @@ export function WalletWidget() {
     0,
   );
   return (
-    <View style={{ flex: 2 }}>
+    <View style={{ flex: 12 }}>
       <CustomContainer
         style={{
           flex: 2,
@@ -54,7 +54,7 @@ export function WalletWidget() {
         >
           <ThemedText type="default">Stan portfela</ThemedText>
           <ThemedText type="title">
-            {walletValueInMainCurrency.toFixed(2)} PLN
+            {walletValueInMainCurrency.toFixed(2)} {mainCurrency}
           </ThemedText>
         </View>
         <View
@@ -89,6 +89,13 @@ export function WalletWidget() {
           nestedScrollEnabled={true}
           style={{ width: "100%" }}
         >
+          {saldaData && visibleSalda.length === 0 && (
+            <View style={{ paddingVertical: 24, alignItems: "center" }}>
+              <ThemedText type="label" themeColor="textSecondary">
+                Brak środków na koncie
+              </ThemedText>
+            </View>
+          )}
           {visibleSalda.map((s) => (
             <WalletCurrencyRow
               key={s.waluta}
