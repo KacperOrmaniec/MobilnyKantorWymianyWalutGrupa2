@@ -5,7 +5,7 @@ import { LineChart } from "react-native-gifted-charts";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useTheme } from "@/hooks/use-theme";
 
-export function ExchangeRateChart({ data }: { data: number[] }) {
+export function ExchangeRateChart({ data }: { data: { value: number; label: string }[] }) {
   const theme = useTheme();
   const [width, setWidth] = useState(0);
 
@@ -17,8 +17,8 @@ export function ExchangeRateChart({ data }: { data: number[] }) {
     );
   }
 
-  const min = Math.min(...data);
-  const max = Math.max(...data);
+  const min = Math.min(...data.map((point) => point.value));
+  const max = Math.max(...data.map((point) => point.value));
   const pad = (max - min) / 10 || min / 100;
 
   return (
@@ -27,7 +27,8 @@ export function ExchangeRateChart({ data }: { data: number[] }) {
       style={{ width: "100%" }}
     >
       <LineChart
-        data={data.map((value) => ({ value }))}
+        data={data}
+        xAxisLabelTextStyle={{ color: theme.textSecondary, fontSize: 10 }}
         yAxisTextStyle={{ color: theme.text }}
         showFractionalValues
         color={theme.text}

@@ -63,7 +63,10 @@ export default function ExchangeDetailsScreen() {
   });
 
   const graphExchangeRateValues =
-    exchangeRatesHistory?.map((d) => d.kursAvg) ?? [];
+    exchangeRatesHistory?.map((d) => ({
+      value: d.kursAvg,
+      label: `${d.data.slice(8, 10)}.${d.data.slice(5, 7)}`,
+    })) ?? [];
 
   const amountParsed = Number(amount.replace(",", "."));
   const amountInMainCurrency =
