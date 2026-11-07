@@ -63,3 +63,14 @@ export type Transakcja = {
 };
 
 export type TransakcjeResponse = Transakcja[];
+
+export type Przelew = {
+  id: number;
+  timestamp: string;
+  idNadawcy: number;
+  nazwaNadawcy: string;
+  idOdbiorcy: number;
+  nazwaOdbiorcy: string;
+  kwota: number;
+  waluta: string;
+};

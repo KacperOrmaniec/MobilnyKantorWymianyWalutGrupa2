@@ -61,6 +61,8 @@ export default function RootLayout() {
           <Stack.Protected guard={isLoggedIn}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="deposit" />
+            <Stack.Screen name="transfers" />
+            <Stack.Screen name="transfer-history" />
             <Stack.Screen name="transaction-history" />
             <Stack.Screen name="exchange-details" />
           </Stack.Protected>

@@ -28,4 +28,4 @@ export const Fonts = {
   mono: "monospace",
 } as const;
 
-export const BottomTabInset = 100;
+export const BottomTabInset = 64 + 60 + 18;

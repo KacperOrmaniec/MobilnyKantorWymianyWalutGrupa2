@@ -122,7 +122,8 @@ export function WalletWidget() {
           }}
         />
         <CustomButton
-          label="Wypłata"
+          label="Przelewy"
+          onPress={() => router.push("/transfers")}
           style={{
             borderTopRightRadius: 0,
             borderTopLeftRadius: 0,
